@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:orientation="vertical"
+    tools:context="com.ibabai.android.proto.MainActivity" >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+    	<android.support.v4.view.ViewPager
+        	android:id="@+id/presentation_pager"
+        	android:layout_width="match_parent"
+        	android:layout_height="match_parent" />    
+    </LinearLayout>         
+	<RelativeLayout 
+    	android:layout_width="match_parent"
+    	android:layout_height="wrap_content" >
+     	<Button
+         	android:id="@+id/btn_promo_rules"         
+         	android:layout_alignParentLeft="true"         	
+         	android:layout_width="85dp"
+         	android:layout_height="wrap_content"
+         	android:layout_marginBottom="10dp"
+         	android:background="@drawable/btn_rules"
+         	android:textSize="20sp"
+         	android:onClick="showPromoRules"                        
+         	android:text="@string/promo_rules" />
+     	
+     	<Button
+         	android:id="@+id/btn_not_interested"         	      	
+         	android:layout_width="150dp"
+         	android:layout_height="wrap_content"
+         	android:layout_centerHorizontal="true"
+         	android:layout_marginBottom="10dp"
+         	android:textSize="20sp"
+         	android:background="@drawable/btn_rules"
+         	android:onClick="PromoMap"                        
+         	android:text="@string/not_inter" />
+       
+     	<Button
+         	android:id="@+id/btn_stop_list"         
+         	android:layout_alignParentRight="true"         	              
+         	android:layout_height="wrap_content" 
+         	android:layout_width="85dp"
+         	android:background="@drawable/btn_rules"
+         	android:textSize="20sp"
+         	android:layout_marginBottom="10dp"
+         	android:onClick="sendToStoplist"                 
+         	android:text="@string/stop_list" />   
+	</RelativeLayout>
+</LinearLayout>    

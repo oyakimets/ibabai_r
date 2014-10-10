@@ -1,0 +1,43 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:orientation="vertical"
+    tools:context="com.ibabai.android.proto.MainActivity" >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" >
+    	<android.support.v4.view.ViewPager
+        	android:id="@+id/pager"
+        	android:layout_width="match_parent"
+        	android:layout_height="match_parent"        	
+        	android:visibility="gone"/>    
+    </LinearLayout>         
+	<RelativeLayout 
+    	android:layout_width="match_parent"
+    	android:layout_height="wrap_content" >
+     	<Button
+         	android:id="@+id/btn_rules"         
+         	android:layout_alignParentLeft="true"         	
+         	android:layout_width="100dp"
+         	android:layout_height="wrap_content"
+         	android:layout_marginBottom="16dp"
+         	android:background="@drawable/btn_rules"
+         	android:onClick="showTos"                        
+         	android:text="@string/rules" />
+       
+     	<Button
+         	android:id="@+id/btn_confirm"         
+         	android:layout_alignParentRight="true"         	              
+         	android:layout_height="wrap_content" 
+         	android:layout_width="200dp"
+         	android:background="@drawable/btn_confirm"
+         	android:layout_marginBottom="16dp"
+         	android:onClick="signUp"                 
+         	android:text="@string/confirm" />   
+	</RelativeLayout>
+</LinearLayout>    

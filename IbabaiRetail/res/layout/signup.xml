@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/com.android.ibabairetail.proto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="10dp" 
+    android:paddingRight="10dp"  
+    app:columnCount="2"
+    app:orientation="horizontal" >    
+
+    <TextView         
+    	android:textAppearance="?android:attr/textAppearanceLarge"     	    	
+    	android:text="E-mail"
+    	android:layout_height="60dp" />
+    	
+    <EditText
+        android:id="@+id/email"
+        app:layout_gravity="fill_horizontal"
+        android:inputType="textEmailAddress"
+        android:imeOptions="actionNext">     
+        
+    </EditText>
+    
+    <TextView         
+    	android:textAppearance="?android:attr/textAppearanceLarge"     	    	
+    	android:text="Phone"
+    	android:layout_height="60dp"  />
+    	
+    <EditText
+        android:id="@+id/phone"
+        app:layout_gravity="fill_horizontal"
+        android:inputType="phone"
+        android:hint="(***)*******"
+        android:imeOptions="actionNext" />     	
+    
+        
+    <Button 
+        android:id="@+id/signup_button"
+        android:layout_marginTop = "30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        app:layout_columnSpan = "2"   
+        android:text="Create Account"        
+        app:layout_gravity="fill_horizontal"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:onClick="AccountCreate"
+        android:background="@drawable/btn_confirm" />
+</android.support.v7.widget.GridLayout>
