@@ -20,6 +20,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
@@ -43,7 +44,7 @@ public class StopListService extends IntentService {
 		dbh=DatabaseHelper.getInstance(this.getApplicationContext());
 		shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE); 
 		pa_id = (String) i.getExtras().get(IbabaiUtils.EXTRA_NI);
-		cl_id = (String) i.getExtras().get(DatabaseHelper.CL_ID);
+		cl_id = getClientId(getPromoact(pa_id));
 		client_id = Integer.parseInt(cl_id);
 		File dir_src = new File(getPromoDir(this), pa_id);			
 		File src = new File(dir_src, "client.jpg");
@@ -150,6 +151,21 @@ public class StopListService extends IntentService {
 			}			
 		}
 	}
+	
+	private Cursor getPromoact(String id) {
+		 String p_query = String.format("SELECT * FROM %s WHERE promoact_id = "+id, DatabaseHelper.TABLE_P);
+		 return(dbh.getReadableDatabase().rawQuery(p_query, null));
+	 }
+	
+	private String getClientId(Cursor c) {
+		String c_id = null;
+		if (c != null && c.moveToFirst()) {
+			int id_ind = c.getColumnIndex("client_id");
+			int cl_id = c.getInt(id_ind);
+			c_id = Integer.toString(cl_id);			
+		}
+		return c_id;
+	}	
 	private void raiseNotification(Context ctxt, Exception e) {
 		NotificationCompat.Builder b=new NotificationCompat.Builder(ctxt);
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Ibabai</string>
+    <string name="app_name">IbabaiR</string>
     <string name="introduction">Introduction</string>
     <string name="rules">Rules</string>
     <string name="confirm">Accept rules</string>
@@ -58,7 +58,7 @@
     <string name="stop_list">Stop list</string>
     <string name="desc_promo_tag">Promo tag</string>
     <string name="desc_stoplist_tag">stop_list_tag</string>
-    <string name="dialog_ni">Do you really want to delete this promo?</string>
+    <string name="dialog_ni">"You have two options:\r\n1.Permanently DELETE this promo. \r\n2.BLOCK all future promos of this chain. \r\nYou will be able to unblock chain on "Block" page."</string>
     <string name="dialog_sl">Do you really want to block all the promos from this company?</string>
     <string name="dialog_unblock">I agree to receive promos from this company again.</string>
     <string name="dialog_loc_title">Location service is disabled. </string>
@@ -97,6 +97,17 @@
     <string name="ar_disconnected">ARClient disconnected</string>
     <string name="ar_connected">ARClient connected</string>
     <string name="remove_ar_already_requested_error">Can\'t remove ar, previous request has\'t finished.</string>
+    <string name="promo_map">Show on map</string>
+    <string name="block_list">Block list</string>
+    <string name="active_promos">Active promos</string>
+    <string name="stores_with_promo">Stores with promo</string>
+    <string name="activate_promo">Activate promo</string>
+    <string name="code_tag">Code tag</string>
+    <string name="code_heading">You promo code</string>
+    <string name="have_problem">Have problem? Press!</string>
+    <string name="ab_activation">Activation</string>
+    <string name="desc_code_tag">Code tag</string>
+    <string name="dialog_problem">If code is not excepted do not waste your time with store personal. They will not help you! Pay your bill and visit &quot;Help&quot; page (?) of this application. Should you not find solution to your problem, please contact us from that page!</string>
     
 
 </resources>

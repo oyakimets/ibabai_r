@@ -30,7 +30,16 @@ public class PresentationDisplayActivity extends FragmentActivity {
         	
         }
         
-        setContentView(R.layout.presentation_pager); 
+        shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+        
+        if (shared_prefs.getInt(IbabaiUtils.STORE_ID, 0) == 0) {
+        	setContentView(R.layout.presentation_pager); 
+        }
+        else {
+        	setContentView(R.layout.presentation_pager_in_store);
+        }
+        
+        
         pres_pager = (ViewPager)findViewById(R.id.presentation_pager);
         
         ActionBar ab=getActionBar();
@@ -90,14 +99,7 @@ public class PresentationDisplayActivity extends FragmentActivity {
 	}
 	public void PromoMap(View v) {		
 		
-	}
-	public void sendToStoplist(View v) {		
-		Bundle bundle = new Bundle();
-    	bundle.putString("promoact", promoact_id);
-    	StopDialogFragment sdf = new StopDialogFragment();
-    	sdf.setArguments(bundle);
-    	sdf.show(getSupportFragmentManager(), "sl");		
-	}
+	}	
 	static File getConDir(Context ctxt) {
 		 return(new File(ctxt.getFilesDir(), IbabaiUtils.CON_BASEDIR));
 	 }	

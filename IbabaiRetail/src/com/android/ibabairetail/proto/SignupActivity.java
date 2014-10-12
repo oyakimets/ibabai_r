@@ -56,13 +56,15 @@ public class SignupActivity extends FragmentActivity {
  		Editor editor=shared_prefs.edit();
  		editor.putInt(IbabaiUtils.CITY, 0);
  		editor.putInt(IbabaiUtils.STORE_ID, 0);
+ 		editor.putInt(IbabaiUtils.PROMO_CODE, 2112);
  		editor.apply();
  		
  		if (!isNetworkAvailable(this)) {
  			NetworkDialogFragment ndf = new NetworkDialogFragment();
         	ndf.show(getSupportFragmentManager(), "network");
  		}
-        
+ 		
+        /*
         GPSTracker gps = new GPSTracker(this);
         if(!gps.canGetLocation()) {
         	LocDialogFragment ldf = new LocDialogFragment();
@@ -72,6 +74,7 @@ public class SignupActivity extends FragmentActivity {
         dbh = DatabaseHelper.getInstance(getApplicationContext());
         db_load=new DbLoadTask();
         db_load.execute();
+        */
         
 	}
 	
@@ -82,6 +85,12 @@ public class SignupActivity extends FragmentActivity {
 		s_phone = phone.getText().toString();			 
 						
 		if ( s_email.length() >= 5 && s_phone.length() == 10) {
+			Editor ed = shared_prefs.edit();
+			ed.putString(IbabaiUtils.AUTH_TOKEN, "fuck_you");
+			ed.putString(IbabaiUtils.USER_ID, "1");
+			ed.putString(IbabaiUtils.EMAIL, "qwer@ty.com");
+			ed.putString(IbabaiUtils.PHONE, "1234567890");
+			ed.apply();
 			Intent sign_intent = new Intent(this, CoreActivity.class);
 			startActivity(sign_intent);
 			/*
@@ -101,9 +110,7 @@ public class SignupActivity extends FragmentActivity {
 		
 	}
 	
-	public static <T> void executeAsyncTask(AsyncTask<T, ?, ?> task, T... params) {
-		task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
-	}
+	
 	private class DbLoadTask extends AsyncTask<ContentValues, Void, Void> {		
 		 
 		 @Override

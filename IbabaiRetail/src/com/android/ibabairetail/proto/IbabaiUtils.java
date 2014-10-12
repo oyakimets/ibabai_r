@@ -32,6 +32,7 @@ public class IbabaiUtils {
 	public static final String PREF_VEN_DIR="pendingConDir";
 	public static final String VEN_BASEDIR="vendors";
 	public static final String SL_BASEDIR="stop_list";
+	public static final String PROMO_CODE="code";
 	
 	public final static String BASE_API_ENDPOINT_URL="http://192.168.1.103:3000/api/v1/";
 	public static final String LOGS_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"cust_logs.json";

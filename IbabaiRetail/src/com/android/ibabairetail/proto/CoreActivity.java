@@ -1,23 +1,26 @@
 package com.android.ibabairetail.proto;
 
-import android.support.v4.app.FragmentActivity;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
@@ -43,11 +46,12 @@ public class CoreActivity extends FragmentActivity {
                     
                 
         ActionBar ab = getActionBar(); 
-        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);        
-        ab.setDisplayShowHomeEnabled(false);
-        ab.setDisplayShowTitleEnabled(false);
+        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        ab.setCustomView(R.layout.ab_core);
         ab.setDisplayHomeAsUpEnabled(true);
-        ab.setHomeButtonEnabled(true);       
+        ab.setHomeButtonEnabled(true);
+        ab.setDisplayShowHomeEnabled(true);
+        ab.setDisplayShowTitleEnabled(false);       
                 
 		if (servicesConnected()) {
 			Intent ar_intent = new Intent(this, ARService.class);
@@ -163,6 +167,9 @@ public class CoreActivity extends FragmentActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+		case R.id.home:			
+			appExit();
+			return true;
 		case R.id.action_help:
 			Intent in=new Intent(this, HelpActivity.class);
 			startActivity(in);
@@ -233,4 +240,15 @@ public class CoreActivity extends FragmentActivity {
 			return false;
 		}
 	}
+	public void toPromoMap(View view) {
+		Intent map_intent = new Intent(this, PromoMapActivity.class);
+		startActivity(map_intent);
+	}
+	public void appExit() {
+		Intent e_int = new Intent(Intent.ACTION_MAIN);
+		e_int.addCategory(Intent.CATEGORY_HOME);
+		e_int.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(e_int);		
+	}	
+	
 }

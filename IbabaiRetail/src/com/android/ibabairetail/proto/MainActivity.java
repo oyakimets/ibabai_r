@@ -48,7 +48,7 @@ public class MainActivity extends FragmentActivity {
     	if( getIntent().getBooleanExtra("EXIT", false)) {
     		finish();
     	}
-    	if(shared_prefs.contains(IbabaiUtils.AUTH_TOKEN)) {
+    	if(shared_prefs.contains(IbabaiUtils.AUTH_TOKEN) && !shared_prefs.getString(IbabaiUtils.AUTH_TOKEN, "dv").equals("reset")) {
     		Intent launchIntent = new Intent(this, CoreActivity.class);
     		startActivity(launchIntent);
     		finish();

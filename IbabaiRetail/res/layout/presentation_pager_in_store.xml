@@ -32,10 +32,11 @@
          	android:paddingTop="10dp"
          	android:paddingBottom="10dp"
          	android:onClick="showPromoRules"                        
-         	android:text="@string/promo_rules" />    	
-       
+         	android:text="@string/promo_rules" />
+     	
+     	      
      	<Button
-         	android:id="@+id/btn_stores_with_promo"         
+         	android:id="@+id/btn_activate_promo"         
          	android:layout_alignParentRight="true"         	              
          	android:layout_height="wrap_content" 
          	android:layout_width="200dp"
@@ -45,7 +46,7 @@
          	android:layout_marginRight="10dp"
          	android:paddingTop="10dp"
          	android:paddingBottom="10dp"
-         	android:onClick="sendToStoplist"                 
-         	android:text="@string/stores_with_promo" />   
+         	android:onClick="ActivatePromo"                 
+         	android:text="@string/activate_promo" />   
 	</RelativeLayout>
 </LinearLayout>    
