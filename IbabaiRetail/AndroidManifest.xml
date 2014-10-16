@@ -19,7 +19,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"/>
-
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+	
+    <uses-feature 
+        android:glEsVersion="0x00020000"
+        android:required="true"/>
+    
+    
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -92,16 +98,28 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.android.ibabairetail.proto.CoreActivity" />
          </activity>
-          <activity android:name="PromoCodeActivity"
-             android:parentActivityName="PresentationDisplayActivity">
-             <meta-data
+         <activity android:name="PromoCodeActivity"
+              android:parentActivityName="MainActivity">
+            <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.android.ibabairetail.proto.PresentationDisplayActivity" />
-         </activity>
+                android:value="com.android.ibabairetail.proto.MainActivity" />         
+        </activity>
+        <activity android:name="PromoStoreMapActivity"
+              android:parentActivityName="CoreActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.android.ibabairetail.proto.CoreActivity" />         
+        </activity>
+        
+        <meta-data 
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyBTXEny4pctQHGJjJiYJoNCRoHf7EFnd_c"/>
+        <meta-data 
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
         
         <service android:name="LocationService"></service>
-        <service android:name="StoresUploadService"></service>
-        <service android:name="psUploadService"></service>       
+        <service android:name="DataUploadService"></service>             
         <service android:name="DataUpdateService"></service>
         <service android:name="ConUpdateService"></service>
         <service android:name="conInstallService"></service>
@@ -112,9 +130,9 @@
         <service android:name="ClientUnblockService"></service>           
         <service android:name="ARService"></service>
         <service android:name="ReceiveTransitionsIntentService"
-            android:exported="true"></service>
+            android:exported="false"></service>
         <service android:name="ARIntentService"
-            android:exported="true"></service>
+            android:exported="false"></service>
         <receiver android:name="DownloadCompleteReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.DOWNLOAD_COMPLETE" />                    

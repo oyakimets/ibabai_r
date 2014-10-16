@@ -17,4 +17,16 @@ public class Store {
 	public double getLon() {
 		return(store.optDouble("longitude"));
 	}
+	public int getStoreRadius() {
+		return(store.optInt("radius"));
+	}
+	public int getClientId() {
+		return(store.optInt("client_id"));
+	}
+	public String getClientName() {
+		return(store.optString("client_name"));
+	}
+	public int getCatInd() {
+		return(store.optInt("category"));
+	}
 }

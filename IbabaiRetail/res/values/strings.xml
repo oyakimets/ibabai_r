@@ -103,11 +103,13 @@
     <string name="stores_with_promo">Stores with promo</string>
     <string name="activate_promo">Activate promo</string>
     <string name="code_tag">Code tag</string>
-    <string name="code_heading">You promo code</string>
+    <string name="code_heading">Advise this code to Assistant.</string>
     <string name="have_problem">Have problem? Press!</string>
     <string name="ab_activation">Activation</string>
     <string name="desc_code_tag">Code tag</string>
     <string name="dialog_problem">If code is not excepted do not waste your time with store personal. They will not help you! Pay your bill and visit &quot;Help&quot; page (?) of this application. Should you not find solution to your problem, please contact us from that page!</string>
+    <string name="ab_map_ps">Promo Map</string>
+    <string name="no_map">Map Error. Try later.</string>
     
 
 </resources>

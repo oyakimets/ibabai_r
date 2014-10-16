@@ -1,10 +1,12 @@
 package com.android.ibabairetail.proto;
 
 import java.io.File;
+
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
@@ -32,7 +34,7 @@ public class PresentationDisplayActivity extends FragmentActivity {
         
         shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
         
-        if (shared_prefs.getInt(IbabaiUtils.STORE_ID, 0) == 0) {
+        if (shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0) == 0) {
         	setContentView(R.layout.presentation_pager); 
         }
         else {
@@ -56,7 +58,7 @@ public class PresentationDisplayActivity extends FragmentActivity {
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.core, menu);
+		getMenuInflater().inflate(R.menu.promo_pres, menu);
 		return true;
 	}
 	
@@ -90,15 +92,26 @@ public class PresentationDisplayActivity extends FragmentActivity {
 		pres_pager.setAdapter(adapter);
 	}
 	public static String getPromoDir(int position) {			   
-	    return CoreActivity.allDirs.get(position);
+	    return CoreActivity.dbPromos.get(position);
 	}
 	public void showPromoRules(View v) {				
 		Intent promo_rules_intent=new Intent(this, PromoRulesActivity.class);
 		promo_rules_intent.putExtra(IbabaiUtils.EXTRA_DIR, promoact_id);
 		startActivity(promo_rules_intent); 
+	}	
+	public void StoresWithPromo(View v) {		
+		Intent map_intent = new Intent(this, PromoStoreMapActivity.class);
+		map_intent.putExtra(IbabaiUtils.EXTRA_PA, promoact_id);
+		startActivity(map_intent);
+		finish();
 	}
-	public void PromoMap(View v) {		
-		
+	public void ActivatePromo(View v) {
+		Editor editor = shared_prefs.edit();
+		editor.putInt(IbabaiUtils.PROMO_CODE, 2112);
+		editor.apply();
+		Intent promo_code_intent=new Intent(this, PromoCodeActivity.class);		
+		startActivity(promo_code_intent);
+		finish();
 	}	
 	static File getConDir(Context ctxt) {
 		 return(new File(ctxt.getFilesDir(), IbabaiUtils.CON_BASEDIR));

@@ -4,12 +4,10 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
-
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -20,7 +18,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
@@ -28,22 +25,20 @@ public class CoreActivity extends FragmentActivity {
 	private String sl_count = null;				
 	private ListView PromoList;
 	private PromoListAdapter pl_adapter=null;
-	private ArrayList<Drawable> PromoListItems;	
-	public static ArrayList<String> allDirs;
-	public static ArrayList<String> dbPromos;
-	private static int store_id;	
-	private Cursor pa_cursor;
-	private Cursor ps_cursor;	
+	private ArrayList<Drawable> PromoListItems;		
+	public static ArrayList<String> dbPromos;	
+	private int a_promo;
+	private Cursor pa_cursor;		
 	SharedPreferences shared_prefs;	
 	DatabaseHelper dbh;
 	FileInputStream is;
 	BufferedInputStream buf;
+	private int cat_index;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);        
-        setContentView(R.layout.activity_core);
-                    
+        setContentView(R.layout.activity_core);                   
                 
         ActionBar ab = getActionBar(); 
         ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -65,11 +60,15 @@ public class CoreActivity extends FragmentActivity {
 		DataUpdateReceiver.scheduleAlarm(this);
        
 	}	
-	
 	private void LoadPromoTags() {
 			 
-		try {			
-			pa_cursor=promoactCursor();
+		try {
+			if (cat_index == 0) {
+				pa_cursor=AllPromoCursor();
+			}
+			else {
+				pa_cursor=CatPromoCursor(Integer.toString(cat_index));
+			}
 			if (pa_cursor != null && pa_cursor.moveToFirst()) {
 				int id_ind = pa_cursor.getColumnIndex("promoact_id");
 				while (!pa_cursor.isAfterLast()) {
@@ -79,26 +78,9 @@ public class CoreActivity extends FragmentActivity {
 				}
 				pa_cursor.close();
 			}
-			if (store_id == 0) {
-				allDirs=dbPromos;						 
-			}
-			else {
-				ps_cursor = storePromosCursor(store_id);
-				if(ps_cursor != null && ps_cursor.moveToFirst()) {
-					int paid_ind = ps_cursor.getColumnIndex("promoact_id");
-					while (!ps_cursor.isAfterLast()) {
-						String promoact_id=Integer.toString(ps_cursor.getInt(paid_ind));
-						if (dbPromos.contains(promoact_id)) {
-							allDirs.add(promoact_id);
-						}
-						ps_cursor.moveToNext();
-					}
-					ps_cursor.close();						 						
-				}
-			}				
-				
-			for (int j=0; j< allDirs.size(); j++) {					
-				String dir=allDirs.get(j);
+			
+			for (int j=0; j< dbPromos.size(); j++) {					
+				String dir=dbPromos.get(j);
 				File pa_folder = new File(getConDir(CoreActivity.this), dir);
 				if (pa_folder.exists()) {
 					File tag_file = new File(pa_folder, "con_tag.jpg");
@@ -111,6 +93,7 @@ public class CoreActivity extends FragmentActivity {
 			pl_adapter.notifyDataSetChanged();
 		    PromoList.setAdapter(pl_adapter);
 		    PromoList.setOnItemClickListener(new PromoListClickListener());
+		    dbh.close();
 		}
 		catch(Exception e) {
 		 	e.printStackTrace();
@@ -120,30 +103,34 @@ public class CoreActivity extends FragmentActivity {
 	@Override
 	protected void onResume() {
 		
-		shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
-		store_id=shared_prefs.getInt(IbabaiUtils.STORE_ID, 0);        
-        
-		dbh=DatabaseHelper.getInstance(getApplicationContext());
-		dbPromos=new ArrayList<String>();
-        allDirs=new ArrayList<String>();
-        PromoList=(ListView) findViewById(R.id.promo_list);
-        PromoListItems = new ArrayList<Drawable>();
-        LoadPromoTags();        
-        
 		GPSTracker gps = new GPSTracker(this);
         if(!gps.canGetLocation()) {
         	LocDialogFragment ldf = new LocDialogFragment();
         	ldf.show(getSupportFragmentManager(), "location");
         }               
+		
+		shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);		
+		a_promo=shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0);
+		cat_index=shared_prefs.getInt(DatabaseHelper.CAT, 0);
+		if (a_promo == 0) {        
+			dbh=DatabaseHelper.getInstance(getApplicationContext());
+			dbPromos=new ArrayList<String>();			
+			PromoList=(ListView) findViewById(R.id.promo_list);
+			PromoListItems = new ArrayList<Drawable>();
+			LoadPromoTags();
+		}
+		else {
+			Intent promo_intent=new Intent(this, PresentationDisplayActivity.class);			
+			promo_intent.putExtra(IbabaiUtils.EXTRA_PA, Integer.toString(a_promo));
+			startActivity(promo_intent);
+			finish();
+		}
+        
+		
        
         super.onResume();		
-	}
+	}	
 	
-	@Override
-	protected void onDestroy() {
-		dbh.close();
-		super.onDestroy();
-	}
 	private class PromoListClickListener implements ListView.OnItemClickListener {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -153,7 +140,7 @@ public class CoreActivity extends FragmentActivity {
 	private void displayPromoAction(int position) {
 		Intent promo_intent=new Intent(this, PresentationDisplayActivity.class);
 		promo_intent.putExtra(IbabaiUtils.EXTRA_POSITION, position);
-		String pa_id = allDirs.get(position);
+		String pa_id = dbPromos.get(position);
 		promo_intent.putExtra(IbabaiUtils.EXTRA_PA, pa_id);
 		startActivity(promo_intent);		
 	}	
@@ -202,18 +189,17 @@ public class CoreActivity extends FragmentActivity {
 		
 	}	
 	
-	private Cursor promoactCursor() {
+	private Cursor AllPromoCursor() {
 		 String p_query = String.format("SELECT * FROM %s WHERE stopped=0", DatabaseHelper.TABLE_P);
+		 return(dbh.getReadableDatabase().rawQuery(p_query, null));
+	 }
+	private Cursor CatPromoCursor(String cat) {
+		 String p_query = String.format("SELECT * FROM %s WHERE stopped=0 AND category="+cat, DatabaseHelper.TABLE_P);
 		 return(dbh.getReadableDatabase().rawQuery(p_query, null));
 	 }
 	static File getConDir(Context ctxt) {
 		 return(new File(ctxt.getFilesDir(), IbabaiUtils.CON_BASEDIR));
-	 }
-	private Cursor storePromosCursor(int store_id) {		
-		String ps_query= "SELECT * FROM promo_stores WHERE store_id="+Integer.toString(store_id);
-		return (dbh.getReadableDatabase().rawQuery(ps_query, null));
-	}	
-	
+	 }	
 	private String getStoplistCount() {
 		String sl = null;
 		File sl_dir = getStopDir(this);
@@ -243,6 +229,10 @@ public class CoreActivity extends FragmentActivity {
 	public void toPromoMap(View view) {
 		Intent map_intent = new Intent(this, PromoMapActivity.class);
 		startActivity(map_intent);
+	}
+	public void toStopList() {
+		Intent sl_intent = new Intent(this, stopListActivity.class);
+		startActivity(sl_intent);
 	}
 	public void appExit() {
 		Intent e_int = new Intent(Intent.ACTION_MAIN);

@@ -7,7 +7,7 @@
     <ImageView 
         android:id="@+id/code_tag"
         android:layout_width="match_parent"        
-        android:layout_height="300dp"
+        android:layout_height="292dp"
         android:scaleType="fitXY"        
         android:contentDescription="@string/desc_code_tag" />
     
@@ -15,6 +15,7 @@
         android:id="@+id/code_heading" 
         android:layout_width = "wrap_content"
         android:layout_height = "wrap_content"
+        android:layout_marginTop="10dp"
         android:textSize = "20sp"
         android:layout_gravity="center"
         android:text = "@string/code_heading">        
@@ -22,10 +23,11 @@
     
     <TextView
         android:id="@+id/promo_code" 
-        android:layout_width = "match_parent"
-        android:layout_height = "300dp"
-        android:textSize = "200sp"
-        android:textAlignment="center" >               
+        android:layout_width = "wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textSize = "120sp"
+        android:layout_gravity="center" >               
     </TextView>
     
     <Button
@@ -34,7 +36,7 @@
          	android:layout_height="wrap_content"
          	android:layout_gravity="center"
          	android:layout_marginBottom="10dp"
-         	android:textSize="30sp"
+         	android:textSize="20sp"
          	android:paddingTop="10dp"
          	android:paddingBottom="10dp"
          	android:background="@drawable/btn_rules"

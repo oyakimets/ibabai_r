@@ -19,13 +19,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	static final String P_ID="promoact_id";
 	static final String CL_ID="client_id";
 	static final String CL_NAME="client_name";
-	static final String CODE="barcode";
-	static final String DEL="delivery";
-	static final String VIEW="view";
-	static final String PURCH="purchase";
-	static final String REW1="rew1";
-	static final String REW2="rew2";
-	static final String MULT="multiple";
+	static final String CAT="category";
+	static final String DISC="discount";	
 	static final String STOP="stopped";
 	static final String RAD = "radius";
 	static final String V_ID="vendor_id";
@@ -54,8 +49,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {		
-		db.execSQL("CREATE TABLE stores (_id INTEGER PRIMARY KEY, store_id INTEGER, city_id INTEGER, latitude REAL, longitude REAL);");
-		db.execSQL("CREATE TABLE promoacts (_id INTEGER PRIMARY KEY, promoact_id INTEGER, client_id INTEGER, client_name STRING, barcode STRING, delivery INTEGER DEFAULT 0, view INTEGER DEFAULT 0, purchase INTEGER DEFAULT 0, rew1 INTEGER DEFAULT 0,  rew2 INTEGER DEFAULT 0, multiple INTEGER, stopped INTEGER DEFAULT 0);");		
+		db.execSQL("CREATE TABLE stores (_id INTEGER PRIMARY KEY, store_id INTEGER, client_id INTEGER, client_name STRING, latitude REAL, longitude REAL, radius INTEGER, category INTEGER);");
+		db.execSQL("CREATE TABLE promoacts (_id INTEGER PRIMARY KEY, promoact_id INTEGER, client_id INTEGER, discount REAL DEFAULT 0.0, stopped INTEGER DEFAULT 0, category INTEGER);");		
 		db.execSQL("CREATE TABLE cities (_id INTEGER PRIMARY KEY, city_id INTEGER, latitude REAL, longitude REAL, radius INTEGER);");
 		db.execSQL("CREATE TABLE promo_stores (_id INTEGER PRIMARY KEY, store_id INTEGER, promoact_id INTEGER);");
 				
@@ -80,8 +75,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues s_cv = new ContentValues();
 		s_cv.put(DatabaseHelper.S_ID, s.getStoreId());
+		s_cv.put(DatabaseHelper.CL_ID, s.getClientId());
+		s_cv.put(DatabaseHelper.CL_NAME, s.getClientName());
+		s_cv.put(DatabaseHelper.CAT, s.getCatInd());
 		s_cv.put(DatabaseHelper.LAT, s.getLat());
 		s_cv.put(DatabaseHelper.LON, s.getLon());
+		s_cv.put(DatabaseHelper.RAD, s.getStoreRadius());		
 		db.insert(DatabaseHelper.TABLE_S, DatabaseHelper.S_ID, s_cv);
 		db.close();
 	}
@@ -90,11 +89,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		ContentValues p_cv = new ContentValues();
 		p_cv.put(DatabaseHelper.P_ID, p.getPromoId());
 		p_cv.put(DatabaseHelper.CL_ID, p.getClientId());
-		p_cv.put(DatabaseHelper.CL_NAME, p.getClientName());
-		p_cv.put(DatabaseHelper.CODE, p.getBarcode());
-		p_cv.put(DatabaseHelper.REW1, p.getRew1());
-		p_cv.put(DatabaseHelper.REW2, p.getRew2());
-		p_cv.put(DatabaseHelper.MULT, p.getMult());
+		p_cv.put(DatabaseHelper.DISC, p.getDiscount());	
+		p_cv.put(DatabaseHelper.CAT, p.getCatInd());
 		db.insert(DatabaseHelper.TABLE_P, DatabaseHelper.P_ID, p_cv);
 		db.close();
 	}
@@ -113,6 +109,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		db.insert(DatabaseHelper.TABLE_SP, DatabaseHelper.S_ID, ps_cv);
 		db.close();
 	}
+	public void ClearCities() {
+		 SQLiteDatabase db = this.getWritableDatabase();
+		 if (db != null) {
+			db.delete(DatabaseHelper.TABLE_C, null, null);
+			db.close();			 
+		}		
+	 }
 	public void ClearStores() {
 		 SQLiteDatabase db = this.getWritableDatabase();
 		 if (db != null) {
@@ -124,6 +127,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		 if (db != null) {
 			db.delete(DatabaseHelper.TABLE_SP, null, null);
+			db.close();			 
+		}		
+	}
+	public void ClearPromos() {
+		SQLiteDatabase db = this.getWritableDatabase();
+		 if (db != null) {
+			db.delete(DatabaseHelper.TABLE_P, null, null);
 			db.close();			 
 		}		
 	}
@@ -139,7 +149,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		ContentValues cv = new ContentValues();
 		cv.put(DatabaseHelper.STOP, 0);
-		db.update(DatabaseHelper.TABLE_P, cv, DatabaseHelper.CL_ID+"="+cl_id+" AND "+DatabaseHelper.PURCH+"= 0", null);
+		db.update(DatabaseHelper.TABLE_P, cv, DatabaseHelper.CL_ID+"="+cl_id, null);
 		db.close();
 	}
 	public void paStopUpdate(String pa_id, int code) {		
@@ -148,28 +158,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		cv.put(DatabaseHelper.STOP, code);
 		db.update(DatabaseHelper.TABLE_P, cv, DatabaseHelper.P_ID+"="+pa_id, null);
 		db.close();
-	}
-	public void updateDeliveryCount(String pa_id, int n) {		
-		SQLiteDatabase db = this.getWritableDatabase();
-		ContentValues cv = new ContentValues();
-		cv.put(DatabaseHelper.DEL, n);
-		db.update(DatabaseHelper.TABLE_P, cv, DatabaseHelper.P_ID+"="+pa_id, null);
-		db.close();
-	}
-	public void updateView(String pa_id) {		
-		SQLiteDatabase db = this.getWritableDatabase();
-		ContentValues cv = new ContentValues();
-		cv.put(DatabaseHelper.VIEW, 1);
-		db.update(DatabaseHelper.TABLE_P, cv, DatabaseHelper.P_ID+"="+pa_id, null);
-		db.close();
-	}
-	public void updatePurch(int pa_id) {
-		String id = Integer.toString(pa_id);
-		SQLiteDatabase db = this.getWritableDatabase();
-		ContentValues cv = new ContentValues();
-		cv.put(DatabaseHelper.PURCH, 1);
-		cv.put(DatabaseHelper.STOP, 1);
-		db.update(DatabaseHelper.TABLE_P, cv, DatabaseHelper.P_ID+"="+id, null);
-		db.close();
-	}
+	}	
+	
 }

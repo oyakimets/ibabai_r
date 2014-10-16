@@ -24,7 +24,6 @@ import android.util.Log;
 
 
 public class ClientUnblockService extends IntentService {
-
 	private static final String STOPLIST_API_ENDPOINT_URL=IbabaiUtils.BASE_API_ENDPOINT_URL+"stoplists.json";
 	private static final int NOTIFY_ID = 1030;		
 	private int position;

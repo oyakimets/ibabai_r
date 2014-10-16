@@ -33,10 +33,13 @@ public class IbabaiUtils {
 	public static final String VEN_BASEDIR="vendors";
 	public static final String SL_BASEDIR="stop_list";
 	public static final String PROMO_CODE="code";
+	public static final String ACTIVE_PROMO="active_promo";
+	public static final String PA_UPDATE="updated";
+	
 	
 	public final static String BASE_API_ENDPOINT_URL="http://192.168.1.103:3000/api/v1/";
 	public static final String LOGS_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"cust_logs.json";
-	public static final String CON_BASE_URL = "http://ibabai.picrunner.net/promo_content/";
+	public static final String CON_BASE_URL = "http://ibabai.picrunner.net/retail/promo_content/";
 	public static final String PAYMENT_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"transactions.json";
 	public final static String REGISTER_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"registrations";
 	public static final String CON_EXT="con_ext.zip";

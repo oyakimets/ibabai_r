@@ -13,20 +13,11 @@ public class Promoact {
 	}
 	public int getClientId() {
 		return(pa.optInt("client_id"));
+	}	
+	public int getDiscount() {
+		return(pa.optInt("discount"));
 	}
-	public String getClientName() {
-		return(pa.optString("client_name"));
-	}
-	public String getBarcode() {
-		return(pa.optString("barcode"));
-	}
-	public int getRew1() {
-		return(pa.optInt("rew1"));
-	}
-	public int getRew2() {
-		return(pa.optInt("rew2"));
-	}
-	public int getMult() {
-		return(pa.optInt("multiple"));
-	}
+	public int getCatInd() {
+		return(pa.optInt("category"));
+	}	
 }

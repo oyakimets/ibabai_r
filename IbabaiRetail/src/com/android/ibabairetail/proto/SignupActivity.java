@@ -34,7 +34,9 @@ import com.savagelook.android.UrlJsonAsyncTask;
 
 
 public class SignupActivity extends FragmentActivity {	
-	private DbLoadTask db_load = null;	
+	/*private DbLoadTask db_load = null;
+	 * 	
+	 */
 	Location current_loc;
 	private String s_email;	
 	private String s_phone;	
@@ -55,8 +57,7 @@ public class SignupActivity extends FragmentActivity {
         shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
  		Editor editor=shared_prefs.edit();
  		editor.putInt(IbabaiUtils.CITY, 0);
- 		editor.putInt(IbabaiUtils.STORE_ID, 0);
- 		editor.putInt(IbabaiUtils.PROMO_CODE, 2112);
+ 		editor.putInt(IbabaiUtils.STORE_ID, 0); 		
  		editor.apply();
  		
  		if (!isNetworkAvailable(this)) {
@@ -87,9 +88,10 @@ public class SignupActivity extends FragmentActivity {
 		if ( s_email.length() >= 5 && s_phone.length() == 10) {
 			Editor ed = shared_prefs.edit();
 			ed.putString(IbabaiUtils.AUTH_TOKEN, "fuck_you");
-			ed.putString(IbabaiUtils.USER_ID, "1");
+			ed.putString(IbabaiUtils.USER_ID, "437");
 			ed.putString(IbabaiUtils.EMAIL, "qwer@ty.com");
 			ed.putString(IbabaiUtils.PHONE, "1234567890");
+			ed.putInt(IbabaiUtils.ACTIVE_PROMO, 0);
 			ed.apply();
 			Intent sign_intent = new Intent(this, CoreActivity.class);
 			startActivity(sign_intent);
@@ -110,7 +112,7 @@ public class SignupActivity extends FragmentActivity {
 		
 	}
 	
-	
+	/*
 	private class DbLoadTask extends AsyncTask<ContentValues, Void, Void> {		
 		 
 		 @Override
@@ -181,6 +183,7 @@ public class SignupActivity extends FragmentActivity {
 			 return(dbh.getReadableDatabase().rawQuery(c_query, null));
 		 }
 	 }
+	 */
 	private class RegisterTask extends UrlJsonAsyncTask {
 		public RegisterTask(Context ctxt) {
 			super(ctxt);

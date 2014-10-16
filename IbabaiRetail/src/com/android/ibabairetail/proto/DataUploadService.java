@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -18,52 +19,33 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
-import com.commonsware.cwac.wakeful.WakefulIntentService;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 
-
-public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulIntentService {
+public class DataUploadService extends IntentService {
 	private static final String STORE_BASE_URL = "http://ibabai.picrunner.net/retail/city_stores/";
-	private static final String PROMO_BASE_URL = "http://ibabai.picrunner.net/retail/promo_users/";
+	private static final String PROMO_NEW_USER_URL = "http://ibabai.picrunner.net/retail/promo_users/0.txt";
 	private static final String SP_BASE_URL = "http://ibabai.picrunner.net/retail/promo_stores/";
 	private static final String CITIES_URL = "http://ibabai.picrunner.net/retail/cities.txt";
-	private ArrayList<Integer> current_pa;
-	private ArrayList<Integer> update_pa;
+	private ArrayList<Integer> city_pa;	
 	private JSONArray promoacts = null;
-	private StringBuilder buf;
-	private String PROMO_URL;
-	private String u_id;
+	private StringBuilder buf;	
 	private int city_id;
 	private int c_id;	
 	BufferedReader reader=null;
 	DatabaseHelper dbh;
 	SharedPreferences shared_prefs;
-	Location current_loc;
-	private int counter;
+	Location current_loc;	
 	
-	
-	public DataUpdateService() {
-		super("StoresUpdateService");
+	public DataUploadService() {
+		super("DataUploadService");
 	}
 
 	@Override
-	protected void doWakefulWork(Intent intent) {
+	protected void onHandleIntent(Intent intent) {
 		
 		if (isNetworkAvailable(this)) {
 			
-			Intent ls_i = new Intent(this, LocationService.class);
-			stopService(ls_i);
-			
-			Intent ar_i = new Intent(this, ARService.class);
-			stopService(ar_i);			
-		
 			dbh=DatabaseHelper.getInstance(getApplicationContext());
-			shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);			
-			u_id=shared_prefs.getString(IbabaiUtils.USER_ID, null);
-			Editor ed = shared_prefs.edit();
-			ed.putInt(IbabaiUtils.CITY, 0);
-			ed.apply();
+			shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
 			
 			if (CitiesAvailability()) {
 				dbh.ClearCities();
@@ -83,7 +65,7 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 					buf.append(line+"\n");
 				}							
 				loadCities(buf.toString());							
-			}
+				}
 			catch (Exception e) {
 					Log.e(getClass().getSimpleName(), "Exception retrieving Cities data", e);
 			}
@@ -97,9 +79,9 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 					}
 				}			 			
 			}			
+			
 			GPSTracker gps = new GPSTracker(this);
-			current_loc = gps.getLocation();
-			  
+			current_loc = gps.getLocation();					    
 		
 			Cursor new_city_c = cityCursor();
 			int city_id_ind=new_city_c.getColumnIndex(DatabaseHelper.C_ID);
@@ -126,12 +108,12 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 				}
 			}
 			
-			c_id=shared_prefs.getInt(IbabaiUtils.CITY, 0);				
-			
+			c_id=shared_prefs.getInt(IbabaiUtils.CITY, 0);
+				
+			if (StoresAvailability()) {
+				dbh.ClearStores();
+			}
 			if (c_id != 0) {
-				if (StoresAvailability()) {
-					dbh.ClearStores();
-				}
 				
 				String STORES_URL = STORE_BASE_URL + Integer.toString(c_id) +".txt";
 				try {
@@ -162,8 +144,7 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
 						}
 					}
-				}			 			
-			
+				}			
 			
 				if (psAvailability()) {
 					dbh.ClearPromoStores();
@@ -198,11 +179,13 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
 						}
 					}
-				}					
-		
-				PROMO_URL = PROMO_BASE_URL+u_id+".txt";
+				}			
+				if (promosAvailability()) {
+					dbh.ClearPromos();
+				}
+			
 				try {
-					URL p_url=new URL(PROMO_URL);
+					URL p_url=new URL(PROMO_NEW_USER_URL);
 					HttpURLConnection con=(HttpURLConnection)p_url.openConnection();
 					con.setRequestMethod("GET");
 					con.setReadTimeout(15000);
@@ -215,8 +198,7 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 					while ((line=reader.readLine()) != null) {
 						buf.append(line+"\n");
 					}
-					loadPromos(buf.toString(), u_id);
-					killPromos(buf.toString(), u_id);	
+					loadPromos(buf.toString());					
 				}
 				catch (Exception e) {
 					Log.e(getClass().getSimpleName(), "Exception retrieving promo data", e);
@@ -231,26 +213,18 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 						}
 					}
 				}		
-			}	    
-			WakefulIntentService.sendWakefulWork(this, ConUpdateService.class);		
-			ResetStore();
-			if (servicesConnected()) {
-				
-				Intent ar_intent = new Intent(this, ARService.class);
-				startService(ar_intent);
+				    
+				Intent content_i = new Intent(this, ConUpdateService.class);		
+				startService(content_i);			
 			}
 			else {
-				Intent start_i = new Intent(this, LocationService.class);
-				startService(start_i);
+				stopSelf();
 			}
-		}
-		else {
-			stopSelf();
 		}
 	}
 	private boolean CitiesAvailability() {		
-		String s_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_C);
-		Cursor c = dbh.getWritableDatabase().rawQuery(s_query, null);
+		String c_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_C);
+		Cursor c = dbh.getWritableDatabase().rawQuery(c_query, null);
 		if (c.getCount() != 0) {
 			c.close();
 			return (true);
@@ -285,15 +259,34 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			return (false);
 		}
 	}
+	private boolean promosAvailability() {		
+		String p_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_P);
+		Cursor c = dbh.getWritableDatabase().rawQuery(p_query, null);
+		if (c.getCount() != 0) {
+			c.close();
+			return (true);
+		}
+		else {
+			c.close();
+			return (false);
+		}
+	}
 	
 	 private Cursor cityCursor() {
 		 String c_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_C);
 		 return(dbh.getReadableDatabase().rawQuery(c_query, null));
 	 }
-	 private Cursor promoactCursor() {
-		 String p_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_P);
-		 return(dbh.getReadableDatabase().rawQuery(p_query, null));
-	 }
+	 
+	 private void loadCities(String st) throws JSONException {
+		JSONArray jsa = new JSONArray(st);
+		if (jsa.length()>0) {
+			for (int i=0; i<jsa.length(); i++) {
+				JSONObject c_jso = jsa.optJSONObject(i);
+				City c = new City(c_jso);
+				dbh.AddCity(c);					
+			}			
+		}		
+	}	
 	 
 	 private void loadStores(String st, int id) throws JSONException {
 		JSONObject jso = new JSONObject(st);
@@ -309,97 +302,38 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			}			
 		}		
 	}	
-	 private void loadPromos(String str, String us_id ) throws JSONException {
-		current_pa = CurrentPromos();
-		update_pa = UpdatePromos(str, Integer.parseInt(us_id));
-		counter = 0;
+	 private void loadPromos(String str) throws JSONException {
 		JSONObject jso = new JSONObject(str);
 		promoacts = jso.optJSONArray("promos");
 		if (promoacts.length() > 0) {
-			for (int i=0; i<update_pa.size(); i++) {
-				if (!current_pa.contains(update_pa.get(i))) {
-					JSONObject promoact = promoacts.optJSONObject(i);
+			for (int i=0; i<promoacts.length(); i++) {
+				JSONObject promoact = promoacts.optJSONObject(i);
+				int pa_id = promoact.getInt("promoact_id");
+				if (city_pa.contains(pa_id)) {
 					Promoact p = new Promoact(promoact);
 					dbh.AddPromo(p);
-					counter++;
 				}
 			}
-		}
-		Editor counter_e = shared_prefs.edit();
-		if (counter > 0) {
-			counter_e.putInt(IbabaiUtils.PA_UPDATE, 1);
-		}
-		else {
-			counter_e.putInt(IbabaiUtils.PA_UPDATE, 0);
-		}
-		counter_e.apply();
-	 }
-	 private void killPromos(String str, String us_id) throws JSONException {
-		 current_pa = CurrentPromos();
-		 update_pa = UpdatePromos(str, Integer.parseInt(us_id));		
-		 if (current_pa.size() > 0) {
-			 for (int i=0; i<current_pa.size(); i++) {
-				 if (!update_pa.contains(current_pa.get(i))) {
-					dbh.deletePromo(current_pa.get(i));
-				 }
-			 }
-		 }		 
-	 }
-	 private ArrayList<Integer> UpdatePromos(String st, int us_id) throws JSONException {
-		ArrayList<Integer> up_lst = new ArrayList<Integer>();
-		JSONObject jso = new JSONObject(st);
-		int u_id = jso.optInt("user_id");
-		if (us_id == u_id) {
-			promoacts = jso.optJSONArray("promos");
-			if (promoacts.length() > 0) {
-				for (int i=0; i<promoacts.length(); i++) {
-					JSONObject promoact = promoacts.optJSONObject(i);
-					int pa_id = promoact.getInt("promoact_id");
-					up_lst.add(pa_id);
-				}
-			}			
-		}
-		return up_lst;
-	}
-	 private ArrayList<Integer> CurrentPromos() {
-		 ArrayList<Integer> cur_lst = new ArrayList<Integer>();
-		 Cursor pa_c = promoactCursor();
-		 if (pa_c != null && pa_c.moveToFirst()) {
-			 int id_ind = pa_c.getColumnIndex("promoact_id");
-			 while (!pa_c.isAfterLast()) {
-				 int pa_id = pa_c.getInt(id_ind);
-				 cur_lst.add(pa_id);
-				 pa_c.moveToNext();
-			 }
-			 pa_c.close();
-		 }
-		 return cur_lst; 
-	 }
+		}		
+	 }	
 	
 	private void loadPromoStores(String st) throws JSONException {
+		city_pa = new ArrayList<Integer>();
 		JSONArray jsa = new JSONArray(st);
 		for (int i=0; i<jsa.length(); i++) {
 			JSONObject store_item = jsa.optJSONObject(i);
 			int store_id = store_item.optInt("store_id");
-			JSONArray promo_item = store_item.optJSONArray("promo_ids");
-			for (int j=0; j<promo_item.length(); j++) {
-				int promoact_id = promo_item.optInt(j);
+			JSONArray promo_items = store_item.optJSONArray("promo_ids");
+			for (int j=0; j<promo_items.length(); j++) {
+				int promoact_id = promo_items.optInt(j);
 				dbh.addPromoStores(store_id, promoact_id);
+				if (!city_pa.contains(promoact_id)) {
+					city_pa.add(promoact_id);
+				}
 			}
-		}
-	}
+		}		
+	}	
 	
-	private boolean servicesConnected() {
-		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-		if (ConnectionResult.SUCCESS == resultCode) {
-			Log.d(GeofenceUtils.APPTAG, "Google Play Service is available");
-			return true;
-		}
-		else {
-			Log.d(GeofenceUtils.APPTAG, "Google Play Service is not available");
-			return false;
-		}
-	}
 	public static boolean isNetworkAvailable(Context ctxt) {
 		boolean outcome = false;
 		if (ctxt != null) {
@@ -414,20 +348,4 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 		}
 		return outcome;
 	}
-	private void ResetStore() {
-		Editor editor = shared_prefs.edit();
-		editor.putInt(IbabaiUtils.STORE_ID, 0);
-		editor.remove(GeofenceUtils.KEY_PREVIOUS_ACTIVITY_TYPE);
-		editor.apply();
-	}
-	private void loadCities(String st) throws JSONException {
-		JSONArray jsa = new JSONArray(st);
-		if (jsa.length()>0) {
-			for (int i=0; i<jsa.length(); i++) {
-				JSONObject c_jso = jsa.optJSONObject(i);
-				City c = new City(c_jso);
-				dbh.AddCity(c);					
-			}			
-		}		
-	}	
 }

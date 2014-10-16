@@ -1,20 +1,21 @@
 package com.android.ibabairetail.proto;
 
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 import android.app.ActionBar;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 
 public class MainActivity extends FragmentActivity {
 
@@ -28,6 +29,8 @@ public class MainActivity extends FragmentActivity {
         
         	setContentView(R.layout.activity_main);        
         	
+        	shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+        	   	
                         
         	pager=(ViewPager)findViewById(R.id.pager);
         	adapter=new PresentationAdapter(getSupportFragmentManager());
@@ -38,13 +41,13 @@ public class MainActivity extends FragmentActivity {
         	ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         	ab.setCustomView(R.layout.ab_intro);
         	ab.setDisplayShowHomeEnabled(true);
-        	ab.setDisplayShowTitleEnabled(false);  	
+        	ab.setDisplayShowTitleEnabled(false);       	
         	
         	
     }
     @Override
     protected void onResume() {
-    	shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+    	
     	if( getIntent().getBooleanExtra("EXIT", false)) {
     		finish();
     	}
@@ -55,6 +58,8 @@ public class MainActivity extends FragmentActivity {
     	}
     	else {
     		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+    		Intent upload_intent = new Intent(this, DataUploadService.class);
+        	startService(upload_intent);
     		if (ConnectionResult.SUCCESS == resultCode) {
     			Log.d("GF Detection", "Google Play Service is available");    			
     		}
