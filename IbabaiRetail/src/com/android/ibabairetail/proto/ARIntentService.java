@@ -133,8 +133,9 @@ public class ARIntentService extends IntentService {
 
 		b.setAutoCancel(true).setDefaults(Notification.DEFAULT_ALL).setWhen(System.currentTimeMillis());
 		Bitmap bm = BitmapFactory.decodeResource(ctxt.getResources(), R.drawable.ic_launcher);
+		Bitmap bm_resized = Bitmap.createScaledBitmap(bm, 72, 72, false);
 		if (e == null) {			
-			b.setContentTitle("Hello!").setContentText("You have new promos from IBABAI!").setSmallIcon(android.R.drawable.ic_menu_info_details).setTicker("ibabai").setLargeIcon(bm);
+			b.setContentTitle("Hello!").setContentText("You have new promos from IBABAI!").setSmallIcon(android.R.drawable.ic_menu_info_details).setTicker("ibabai").setLargeIcon(bm_resized);
 
 			Intent outbound=new Intent(ctxt, CoreActivity.class);			
 

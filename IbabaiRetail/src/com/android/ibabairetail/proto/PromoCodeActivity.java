@@ -71,7 +71,7 @@ public class PromoCodeActivity extends FragmentActivity {
 	}
 	public void HaveProblem(View view) {		
 	    	
-		new ProblemDialogFragment().show(getSupportFragmentManager(), "problem");	    	
+		new ProblemDialogFragment().show(getSupportFragmentManager(), "problem");		
 	    
 	}
 	

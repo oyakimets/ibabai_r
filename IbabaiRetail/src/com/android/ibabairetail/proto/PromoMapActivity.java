@@ -1,143 +1,134 @@
 package com.android.ibabairetail.proto;
 
-import android.app.ActionBar;
-import android.app.Activity;
+import java.util.ArrayList;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.NavUtils;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.TextView;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-import com.google.android.gms.location.DetectedActivity;
-
-public class PromoMapActivity extends Activity {
-	private SharedPreferences shared_prefs;
+public class PromoMapActivity extends AbstractMapActivity {
+	private GoogleMap map;
+	private Location current_loc;
+	private double u_lat;
+	private double u_lon;	
 	DatabaseHelper dbh;
+	private ArrayList<Integer> store_lst;
+	private LatLngBounds.Builder builder = new LatLngBounds.Builder();
+	private SharedPreferences shared_prefs;
+	private int category;
 	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
-        dbh = DatabaseHelper.getInstance(getApplicationContext());
-        shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
-        
-        ActionBar ab=getActionBar();
-        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        ab.setCustomView(R.layout.ab_help);
-        ab.setDisplayHomeAsUpEnabled(true);
-        ab.setHomeButtonEnabled(true);
-        ab.setDisplayShowHomeEnabled(true);
-        ab.setDisplayShowTitleEnabled(false);        
-             
-        
-        
-	}
+	@Override 
+	protected void onCreate(Bundle savedInstanceState) {		
+	    super.onCreate(savedInstanceState);
+	   
+	    dbh = DatabaseHelper.getInstance(getApplicationContext());
+	    shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+	    if (readyToGo()) { 
+	      setContentView(R.layout.ps_map);
+	      
+	      SupportMapFragment mapFrag = (SupportMapFragment)getSupportFragmentManager().findFragmentById(R.id.ps_map);
+	      map = mapFrag.getMap();
+	      GPSTracker gps = new GPSTracker(this);
+    	  current_loc = gps.getLocation();
+    	  u_lat = current_loc.getLatitude();
+    	  u_lon = current_loc.getLongitude();
+	      addMarker(map, u_lat, u_lon, "You are here", null, 240);
+	      category = shared_prefs.getInt(DatabaseHelper.CAT, 0);
+	      addStoresMarkers(category);	      
+	      if (savedInstanceState == null) {
+	    	  findViewById(android.R.id.content).post(new Runnable() {
+	    		  @Override
+	    		  public void run() {
+	    			  CameraUpdate all_stores = CameraUpdateFactory.newLatLngBounds(builder.build(), 50);
+	    	    	  map.moveCamera(all_stores);	    	    	  
+	    		  }
+	    	  });
+	    	  
+	      }
+	      
+	    } 
+	} 
 	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);		
-		return true;
+	private void addMarker(GoogleMap map, double lat, double lon, String title, String snippet, int hue) {
+		Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(title).snippet(snippet).icon(BitmapDescriptorFactory.defaultMarker(hue)));
+		builder.include(marker.getPosition());
 	}
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		
-		switch (item.getItemId()) {
-		case R.id.home:
-			NavUtils.navigateUpFromSameTask(this);
-			return true;		
-		default:
-			return super.onOptionsItemSelected(item);
-			
+	private void addStoresMarkers(int cat) {
+		store_lst = new ArrayList<Integer>();
+		getStoresWithPromo(cat);		
+		for (int i=0; i < store_lst.size(); i++) {
+			Cursor st_cursor = StoreCursor(Integer.toString(store_lst.get(i)));
+			if (st_cursor != null && st_cursor.moveToFirst()) {
+				int lat_ind = st_cursor.getColumnIndex("latitude");
+				int lon_ind = st_cursor.getColumnIndex("longitude");
+				int cl_ind = st_cursor.getColumnIndex("client_name");
+				double st_lat = st_cursor.getDouble(lat_ind);
+				double st_lon = st_cursor.getDouble(lon_ind);
+				String cl_name = st_cursor.getString(cl_ind);
+				addMarker(map, st_lat, st_lon, cl_name, null, 0);
+			}	
 		}		
-		
 	}
-	@Override
-	protected void onResume() {
-		
-		String s_id = Integer.toString(shared_prefs.getInt(IbabaiUtils.STORE_ID, 0));
-		TextView tv1 = (TextView) findViewById(R.id.tv_1);
-        tv1.setText(s_id); 
-		int activity_code = shared_prefs.getInt(GeofenceUtils.KEY_PREVIOUS_ACTIVITY_TYPE, DetectedActivity.UNKNOWN);
-        TextView tv2 = (TextView)findViewById(R.id.tv_2);
-        tv2.setText(getNameFromType(activity_code));       
-        
-		String last_s = Integer.toString(shared_prefs.getInt(IbabaiUtils.LAST_STORE, 0));
-		String gf = shared_prefs.getString("geofence", "????");
-	    TextView tv3 = (TextView)findViewById(R.id.tv_3);
-	    tv3.setText(gf);
-	    
-	    
-	    TextView tv4 = (TextView) findViewById(R.id.tv_4);
-        
-	     
-	     super.onResume();
-	}
-	public void setPromo(View view) {
-		Editor editor = shared_prefs.edit();
-		editor.putInt(IbabaiUtils.ACTIVE_PROMO, 14);		
-		editor.apply();	
-		Intent i = new Intent(this, CoreActivity.class);
-		startActivity(i);		
-		
-	}
-	public void killPromo(View view) {
-		Editor editor = shared_prefs.edit();
-		editor.putInt(IbabaiUtils.ACTIVE_PROMO, 0);		
-		editor.apply();	
-		Intent i = new Intent(this, PresentationDisplayActivity.class);
-		startActivity(i);		
-	}
-	private String CitiesCount() {		
-		String c_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_C);
-		Cursor c = dbh.getWritableDatabase().rawQuery(c_query, null);
-		String cnt = Integer.toString(c.getCount());
-		c.close();
-		return cnt;			
-	}
-
-	private String StoresCount() {		
-		String s_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_S);
-		Cursor c = dbh.getWritableDatabase().rawQuery(s_query, null);
-		String cnt = Integer.toString(c.getCount());
-		c.close();
-		return cnt;			
-	}
-	private String PsCount() {		
-		String s_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_SP);
-		Cursor c = dbh.getWritableDatabase().rawQuery(s_query, null);
-		String cnt = Integer.toString(c.getCount());
-		c.close();
-		return cnt;	
-	}
-	private String promosCount() {		
-		String p_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_P);
-		Cursor c = dbh.getWritableDatabase().rawQuery(p_query, null);
-		String cnt = Integer.toString(c.getCount());
-		c.close();
-		return cnt;	
-	}
-	private String getNameFromType(int activity) {
-		switch (activity) {
-		 case DetectedActivity.IN_VEHICLE :
-			 return "CAR";
-		 case DetectedActivity.ON_BICYCLE :
-			 return "BIKE";
-		 case DetectedActivity.ON_FOOT :
-			 return "ON FOOT";
-		 case DetectedActivity.STILL :
-			 return "STILL";
-		 case DetectedActivity.UNKNOWN :
-			 return "UNKNOWN";
-		 case DetectedActivity.TILTING :
-			 return "TILTING";
+	private void getStoresWithPromo(int cat) {
+		ArrayList<Integer> pa_lst = new ArrayList<Integer>();
+		Cursor pa_cursor = PromoCursor(cat);
+		if (pa_cursor != null && pa_cursor.moveToFirst()) {
+			int id_ind = pa_cursor.getColumnIndex(DatabaseHelper.P_ID);
+			while (pa_cursor.isAfterLast()!=true) {
+				int pa_id = pa_cursor.getInt(id_ind);
+				pa_lst.add(pa_id);
+				pa_cursor.moveToNext();				
+			}
+			pa_cursor.close();
 		}
-		return "UNKNOWN";
+		for (int i=0; i<pa_lst.size(); i++) {
+			String pa_id = Integer.toString(pa_lst.get(i)); 
+			getPromoStores(pa_id);			
+		}
+	}
+	private void getPromoStores(String pa_id) {
+		Cursor ps_cursor = PSCursor(pa_id);
+		if (ps_cursor != null && ps_cursor.moveToFirst()) {
+			int st_ind = ps_cursor.getColumnIndex(DatabaseHelper.S_ID);
+			while (ps_cursor.isAfterLast()!=true) {
+				int s_id = ps_cursor.getInt(st_ind);
+				if(!store_lst.contains(s_id)) {
+					store_lst.add(s_id);
+				}
+				ps_cursor.moveToNext();				
+			}			
+		}
+		ps_cursor.close();		
+	}
+	
+	private Cursor PSCursor(String pa_id) {
+		String s_query = String.format("SELECT * FROM %s WHERE promoact_id="+pa_id, DatabaseHelper.TABLE_SP);
+		return (dbh.getReadableDatabase().rawQuery(s_query, null));
+	}
+	private Cursor StoreCursor(String st_id) {
+		String s_query = String.format("SELECT * FROM %s WHERE store_id="+st_id, DatabaseHelper.TABLE_S);
+		return (dbh.getReadableDatabase().rawQuery(s_query, null));
+	}
+	private Cursor PromoCursor(int cat) {
+		String s_query = null;
+		if (cat == 0) {
+			s_query = String.format("SELECT * FROM %s WHERE stopped=0", DatabaseHelper.TABLE_P);
+		}
+		else {
+			String s_cat = Integer.toString(cat);
+			s_query = String.format("SELECT * FROM %s WHERE stopped=0 AND category="+s_cat, DatabaseHelper.TABLE_P);
+		}
+		return (dbh.getReadableDatabase().rawQuery(s_query, null));
 	}
 	
 }

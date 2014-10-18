@@ -27,7 +27,6 @@ public class CoreActivity extends FragmentActivity {
 	private PromoListAdapter pl_adapter=null;
 	private ArrayList<Drawable> PromoListItems;		
 	public static ArrayList<String> dbPromos;	
-	private int a_promo;
 	private Cursor pa_cursor;		
 	SharedPreferences shared_prefs;	
 	DatabaseHelper dbh;
@@ -110,23 +109,13 @@ public class CoreActivity extends FragmentActivity {
         }               
 		
 		shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);		
-		a_promo=shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0);
 		cat_index=shared_prefs.getInt(DatabaseHelper.CAT, 0);
-		if (a_promo == 0) {        
-			dbh=DatabaseHelper.getInstance(getApplicationContext());
-			dbPromos=new ArrayList<String>();			
-			PromoList=(ListView) findViewById(R.id.promo_list);
-			PromoListItems = new ArrayList<Drawable>();
-			LoadPromoTags();
-		}
-		else {
-			Intent promo_intent=new Intent(this, PresentationDisplayActivity.class);			
-			promo_intent.putExtra(IbabaiUtils.EXTRA_PA, Integer.toString(a_promo));
-			startActivity(promo_intent);
-			finish();
-		}
-        
-		
+		       
+		dbh=DatabaseHelper.getInstance(getApplicationContext());
+		dbPromos=new ArrayList<String>();			
+		PromoList=(ListView) findViewById(R.id.promo_list);
+		PromoListItems = new ArrayList<Drawable>();
+		LoadPromoTags();		
        
         super.onResume();		
 	}	

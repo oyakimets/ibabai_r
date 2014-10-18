@@ -27,6 +27,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="20sp" />
+    
+    <TextView
+        android:id="@+id/tv_5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp" />
     	
     
     <Button
@@ -40,14 +46,14 @@
         android:text="Set Promo" /> 
         
     <Button
-    	android:id="@+id/btn_data_upload" 
+    	android:id="@+id/btn_exit_store" 
     	android:layout_marginTop="20dp"        	        	
         android:layout_width="85dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:background="@drawable/btn_rules"
         android:textSize="20sp"
-        android:onClick="killPromo"                        
-        android:text="Kill Promo" />    
+        android:onClick="exitStore"                        
+        android:text="Exit Store" />    
 
 </LinearLayout>

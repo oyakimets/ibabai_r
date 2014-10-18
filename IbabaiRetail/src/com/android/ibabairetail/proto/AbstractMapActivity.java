@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -34,20 +33,7 @@ public class AbstractMapActivity extends FragmentActivity {
 	 
 	 
 	    return(super.onCreateOptionsMenu(menu));
-	  } 
-	 
-	 
-	  @Override 
-	  public boolean onOptionsItemSelected(MenuItem item) {
-	    if (item.getItemId() == R.id.home) {
-	      finish();	 
-	      return(true); 
-	    } 
-	 
-	 
-	    return super.onOptionsItemSelected(item);
-	  } 
-	 
+	  } 	 
 	 
 	  protected boolean readyToGo() { 
 	    int status=

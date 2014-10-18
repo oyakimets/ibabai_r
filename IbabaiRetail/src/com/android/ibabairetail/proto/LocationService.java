@@ -18,7 +18,6 @@ import android.util.Log;
 public class LocationService extends Service {
 
 	private LocationManager locationManager;	
-	private static final long POINT_RADIUS = 100;
 	private static final long PROX_ALERT_EXPIRATION = -1;	
 	private static final String PROX_ALERT_INTENT = "com.ibabai.android.proto.ProximityAlert";	
 	private Cursor s_cursor;
@@ -37,19 +36,21 @@ public class LocationService extends Service {
 			b_rec = new ProximityIntentReceiver();
 			if (s_cursor !=null && s_cursor.moveToFirst()) {
 				while (s_cursor.isAfterLast()!=true) {
-					int id_ind = s_cursor.getColumnIndex("store_id");
-					int lat_ind = s_cursor.getColumnIndex("latitude");
-					int lon_ind = s_cursor.getColumnIndex("longitude");
+					int id_ind = s_cursor.getColumnIndex(DatabaseHelper.S_ID);
+					int lat_ind = s_cursor.getColumnIndex(DatabaseHelper.LAT);
+					int lon_ind = s_cursor.getColumnIndex(DatabaseHelper.LON);
+					int rad_ind = s_cursor.getColumnIndex(DatabaseHelper.RAD);
 					int st_id = s_cursor.getInt(id_ind);
 					double target_lat = s_cursor.getDouble(lat_ind);
-					double target_lon = s_cursor.getDouble(lon_ind);				
+					double target_lon = s_cursor.getDouble(lon_ind);
+					float radius = (float)s_cursor.getInt(rad_ind);
 					String proxy = PROX_ALERT_INTENT+n;
 					IntentFilter filter = new IntentFilter(proxy);
 					registerReceiver(b_rec, filter);
 					Intent intent = new Intent(proxy);
 					intent.putExtra("st_id", st_id);
 					PendingIntent proxIntent = PendingIntent.getBroadcast(this, n, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-					locationManager.addProximityAlert(target_lat, target_lon, POINT_RADIUS, PROX_ALERT_EXPIRATION, proxIntent);
+					locationManager.addProximityAlert(target_lat, target_lon, radius, PROX_ALERT_EXPIRATION, proxIntent);
 					n++;
 					s_cursor.moveToNext();
 				}

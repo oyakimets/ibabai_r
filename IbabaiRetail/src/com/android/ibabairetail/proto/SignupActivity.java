@@ -48,18 +48,14 @@ public class SignupActivity extends FragmentActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.signup);
 		
+		shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+		
 		ActionBar ab = getActionBar(); 
         ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         ab.setCustomView(R.layout.ab_signup);
         ab.setDisplayShowHomeEnabled(true);
         ab.setDisplayShowTitleEnabled(false);       
-        
-        shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
- 		Editor editor=shared_prefs.edit();
- 		editor.putInt(IbabaiUtils.CITY, 0);
- 		editor.putInt(IbabaiUtils.STORE_ID, 0); 		
- 		editor.apply();
- 		
+         		
  		if (!isNetworkAvailable(this)) {
  			NetworkDialogFragment ndf = new NetworkDialogFragment();
         	ndf.show(getSupportFragmentManager(), "network");
@@ -90,8 +86,7 @@ public class SignupActivity extends FragmentActivity {
 			ed.putString(IbabaiUtils.AUTH_TOKEN, "fuck_you");
 			ed.putString(IbabaiUtils.USER_ID, "437");
 			ed.putString(IbabaiUtils.EMAIL, "qwer@ty.com");
-			ed.putString(IbabaiUtils.PHONE, "1234567890");
-			ed.putInt(IbabaiUtils.ACTIVE_PROMO, 0);
+			ed.putString(IbabaiUtils.PHONE, "1234567890");			
 			ed.apply();
 			Intent sign_intent = new Intent(this, CoreActivity.class);
 			startActivity(sign_intent);

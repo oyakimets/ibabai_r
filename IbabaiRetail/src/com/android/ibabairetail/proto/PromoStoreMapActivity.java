@@ -1,12 +1,9 @@
 package com.android.ibabairetail.proto;
 
 import java.util.ArrayList;
-
-import android.content.Intent;
 import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
-
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -57,11 +54,7 @@ public class PromoStoreMapActivity extends AbstractMapActivity {
 	      
 	    } 
 	} 
-	@Override
-	protected void onPause() {
-		finish();
-		super.onPause();
-	}
+	
 	private void addMarker(GoogleMap map, double lat, double lon, String title, String snippet, int hue) {
 		Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lat, lon)).title(title).snippet(snippet).icon(BitmapDescriptorFactory.defaultMarker(hue)));
 		builder.include(marker.getPosition());
@@ -102,8 +95,5 @@ public class PromoStoreMapActivity extends AbstractMapActivity {
 		String s_query = String.format("SELECT * FROM %s WHERE store_id="+st_id, DatabaseHelper.TABLE_S);
 		return (dbh.getReadableDatabase().rawQuery(s_query, null));
 	}
-	@Override
-	public void onBackPressed() {
-		finish();
-	}	
+	
 }

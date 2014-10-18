@@ -1,6 +1,9 @@
 package com.android.ibabairetail.proto;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import android.app.IntentService;
 import android.app.Notification;
@@ -27,12 +30,15 @@ public class ReceiveTransitionsIntentService extends IntentService {
 	private int active_promo;
 	private int store_cat;
 	DatabaseHelper dbh;
-	private String str;
+	private String str;		
+	private Date date_entry=null;
+	private Date date_exit=null;
+	private SimpleDateFormat sdf;
+	private long diffMin;
 	
 	public ReceiveTransitionsIntentService() {
 		super("ReceiveTransitionsIntentService");
 	}
-
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
@@ -61,9 +67,12 @@ public class ReceiveTransitionsIntentService extends IntentService {
 				dbh = DatabaseHelper.getInstance(getApplicationContext());
 				shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
 				Editor editor = shared_prefs.edit();
-				if (transitionType.equals(getString(R.string.geofence_transition_entered))) {
+				sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+				if (transitionType.equals(getString(R.string.geofence_transition_entered))) {					
 					store_cat = GetStoreCategory(geofenceId);
 					active_promo = GetActivePromo(geofenceId);
+					String entry_time = getCurrentTime();
+					editor.putString(IbabaiUtils.STORE_ENTRY_TIME, entry_time);
 					editor.putInt(IbabaiUtils.STORE_ID, s_id);
 					editor.putInt(IbabaiUtils.LAST_STORE, s_id);
 					editor.putInt(DatabaseHelper.CAT, store_cat);
@@ -78,10 +87,15 @@ public class ReceiveTransitionsIntentService extends IntentService {
 					}
 				}
 				else if (transitionType.equals(getString(R.string.geofence_transition_exited))) {
-					if (s_id == shared_prefs.getInt(IbabaiUtils.LAST_STORE, 0)) {						
+					if (s_id == shared_prefs.getInt(IbabaiUtils.LAST_STORE, 0)) {
+						String exit_time = getCurrentTime();
+						String entry_time = shared_prefs.getString(IbabaiUtils.STORE_ENTRY_TIME, "01/01/2014 00:00:00");
+						getTimeDiff(entry_time, exit_time);
+						editor.putLong(IbabaiUtils.STORE_TIME, diffMin);
 						editor.putInt(IbabaiUtils.STORE_ID, 0);
 						editor.putInt(DatabaseHelper.CAT, 0);
 						editor.putInt(IbabaiUtils.ACTIVE_PROMO, 0);
+						editor.putInt(IbabaiUtils.STORE_ENTRY_TIME, 0);
 						editor.apply();			
 						Log.d(getClass().getSimpleName(), "exiting");
 					}
@@ -185,6 +199,7 @@ public class ReceiveTransitionsIntentService extends IntentService {
 
 		b.setAutoCancel(true).setDefaults(Notification.DEFAULT_ALL).setWhen(System.currentTimeMillis());
 		Bitmap bm = BitmapFactory.decodeResource(ctxt.getResources(), R.drawable.ic_launcher);
+		Bitmap bm_resized = Bitmap.createScaledBitmap(bm, 72, 72, false);
 		if (e == null) {
 			if (active_promo != 0) {
 				str = "You have a special offer from this store!";
@@ -192,7 +207,7 @@ public class ReceiveTransitionsIntentService extends IntentService {
 			else {
 				str = "Have a look at offers from other stores!";
 			}
-			b.setContentTitle("Hello!").setContentText(str).setSmallIcon(android.R.drawable.ic_menu_info_details).setTicker("ibabai").setLargeIcon(bm);
+			b.setContentTitle("Hello!").setContentText(str).setSmallIcon(android.R.drawable.ic_menu_info_details).setTicker("ibabai").setLargeIcon(bm_resized);
 
 			Intent outbound=new Intent(ctxt, CoreActivity.class);			
 
@@ -207,5 +222,21 @@ public class ReceiveTransitionsIntentService extends IntentService {
 		mgr.notify(NOTIFY_ID, b.build());
 		
 	}
-
+	private String getCurrentTime() {
+		Calendar cal = Calendar.getInstance();		
+		return sdf.format(cal.getTime());
+	}
+	private void getTimeDiff( String entry, String exit) {
+		
+		try {
+			date_entry = sdf.parse(entry);
+			date_exit = sdf.parse(exit);
+			long diff = date_exit.getTime() - date_entry.getTime();
+			diffMin = diff/(60*1000)%60;
+			
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}		
+	}
 }

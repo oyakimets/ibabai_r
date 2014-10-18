@@ -35,6 +35,8 @@ public class IbabaiUtils {
 	public static final String PROMO_CODE="code";
 	public static final String ACTIVE_PROMO="active_promo";
 	public static final String PA_UPDATE="updated";
+	public static final String STORE_TIME="store_time";
+	public static final String STORE_ENTRY_TIME="store_entry_time";
 	
 	
 	public final static String BASE_API_ENDPOINT_URL="http://192.168.1.103:3000/api/v1/";

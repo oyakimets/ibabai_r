@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
@@ -22,6 +21,7 @@ public class MainActivity extends FragmentActivity {
 	private ViewPager pager=null;
 	private PresentationAdapter adapter=null;	
 	SharedPreferences shared_prefs;
+	private int a_promo;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +29,7 @@ public class MainActivity extends FragmentActivity {
         
         	setContentView(R.layout.activity_main);        
         	
-        	shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
-        	   	
+        	shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);        	   	
                         
         	pager=(ViewPager)findViewById(R.id.pager);
         	adapter=new PresentationAdapter(getSupportFragmentManager());
@@ -51,17 +50,25 @@ public class MainActivity extends FragmentActivity {
     	if( getIntent().getBooleanExtra("EXIT", false)) {
     		finish();
     	}
-    	if(shared_prefs.contains(IbabaiUtils.AUTH_TOKEN) && !shared_prefs.getString(IbabaiUtils.AUTH_TOKEN, "dv").equals("reset")) {
-    		Intent launchIntent = new Intent(this, CoreActivity.class);
-    		startActivity(launchIntent);
-    		finish();
+    	if(shared_prefs.contains(IbabaiUtils.AUTH_TOKEN)) {
+    		a_promo = shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0);
+    		if (a_promo == 0) {
+    			Intent launchIntent = new Intent(this, CoreActivity.class);
+        		startActivity(launchIntent);        		
+    		}
+    		else {    			
+    			Intent promo_intent=new Intent(this, PresentationDisplayActivity.class);			
+    			promo_intent.putExtra(IbabaiUtils.EXTRA_PA, Integer.toString(a_promo));
+    			startActivity(promo_intent);    			
+    		}
+    		finish();    		
     	}
     	else {
-    		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-    		Intent upload_intent = new Intent(this, DataUploadService.class);
-        	startService(upload_intent);
+    		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);    		
     		if (ConnectionResult.SUCCESS == resultCode) {
-    			Log.d("GF Detection", "Google Play Service is available");    			
+    			Log.d("GF Detection", "Google Play Service is available");
+    			Intent upload_intent = new Intent(this, DataUploadService.class);
+            	startService(upload_intent);
     		}
     		else {
     			Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this, 0);
