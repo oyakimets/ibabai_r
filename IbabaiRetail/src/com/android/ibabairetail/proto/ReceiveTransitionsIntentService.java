@@ -209,7 +209,7 @@ public class ReceiveTransitionsIntentService extends IntentService {
 			}
 			b.setContentTitle("Hello!").setContentText(str).setSmallIcon(android.R.drawable.ic_menu_info_details).setTicker("ibabai").setLargeIcon(bm_resized);
 
-			Intent outbound=new Intent(ctxt, CoreActivity.class);			
+			Intent outbound=new Intent(ctxt, MainActivity.class);			
 
 			b.setContentIntent(PendingIntent.getActivity(ctxt, 0, outbound, Intent.FLAG_ACTIVITY_NEW_TASK));
 		}
