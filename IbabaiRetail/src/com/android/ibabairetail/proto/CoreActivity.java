@@ -131,6 +131,7 @@ public class CoreActivity extends FragmentActivity {
 		promo_intent.putExtra(IbabaiUtils.EXTRA_POSITION, position);
 		String pa_id = dbPromos.get(position);
 		promo_intent.putExtra(IbabaiUtils.EXTRA_PA, pa_id);
+		promo_intent.putExtra("nav_flag", 0);
 		startActivity(promo_intent);		
 	}	
 	
@@ -175,7 +176,7 @@ public class CoreActivity extends FragmentActivity {
 		e_int.addCategory(Intent.CATEGORY_HOME);
 		e_int.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(e_int);
-		
+		finish();
 	}	
 	
 	private Cursor AllPromoCursor() {
@@ -219,15 +220,16 @@ public class CoreActivity extends FragmentActivity {
 		Intent map_intent = new Intent(this, PromoMapActivity.class);
 		startActivity(map_intent);
 	}
-	public void toStopList() {
+	public void toStopList(View view) {
 		Intent sl_intent = new Intent(this, stopListActivity.class);
 		startActivity(sl_intent);
+		
 	}
 	public void appExit() {
 		Intent e_int = new Intent(Intent.ACTION_MAIN);
 		e_int.addCategory(Intent.CATEGORY_HOME);
 		e_int.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		startActivity(e_int);		
+		startActivity(e_int);
+		finish();
 	}	
-	
 }

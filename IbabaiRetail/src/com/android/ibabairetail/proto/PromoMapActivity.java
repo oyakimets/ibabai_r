@@ -1,14 +1,19 @@
 package com.android.ibabairetail.proto;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.location.Location;
 import android.os.Bundle;
+
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -16,7 +21,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class PromoMapActivity extends AbstractMapActivity {
+public class PromoMapActivity extends AbstractMapActivity implements OnInfoWindowClickListener {
 	private GoogleMap map;
 	private Location current_loc;
 	private double u_lat;
@@ -26,6 +31,7 @@ public class PromoMapActivity extends AbstractMapActivity {
 	private LatLngBounds.Builder builder = new LatLngBounds.Builder();
 	private SharedPreferences shared_prefs;
 	private int category;
+	private HashMap<String, String> sp_hash;
 	
 	@Override 
 	protected void onCreate(Bundle savedInstanceState) {		
@@ -33,6 +39,7 @@ public class PromoMapActivity extends AbstractMapActivity {
 	   
 	    dbh = DatabaseHelper.getInstance(getApplicationContext());
 	    shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+	    sp_hash = new HashMap<String, String>();
 	    if (readyToGo()) { 
 	      setContentView(R.layout.ps_map);
 	      
@@ -56,7 +63,8 @@ public class PromoMapActivity extends AbstractMapActivity {
 	    	  
 	      }
 	      
-	    } 
+	    }
+	    map.setOnInfoWindowClickListener(this);
 	} 
 	
 	private void addMarker(GoogleMap map, double lat, double lon, String title, String snippet, int hue) {
@@ -64,22 +72,25 @@ public class PromoMapActivity extends AbstractMapActivity {
 		builder.include(marker.getPosition());
 	}
 	private void addStoresMarkers(int cat) {
-		store_lst = new ArrayList<Integer>();
+		store_lst = new ArrayList<Integer>();		
 		getStoresWithPromo(cat);		
 		for (int i=0; i < store_lst.size(); i++) {
 			Cursor st_cursor = StoreCursor(Integer.toString(store_lst.get(i)));
 			if (st_cursor != null && st_cursor.moveToFirst()) {
-				int lat_ind = st_cursor.getColumnIndex("latitude");
-				int lon_ind = st_cursor.getColumnIndex("longitude");
-				int cl_ind = st_cursor.getColumnIndex("client_name");
+				int lat_ind = st_cursor.getColumnIndex(DatabaseHelper.LAT);
+				int lon_ind = st_cursor.getColumnIndex(DatabaseHelper.LON);
+				int cl_ind = st_cursor.getColumnIndex(DatabaseHelper.CL_NAME);
+				int id_ind = st_cursor.getColumnIndex(DatabaseHelper.S_ID);
 				double st_lat = st_cursor.getDouble(lat_ind);
 				double st_lon = st_cursor.getDouble(lon_ind);
 				String cl_name = st_cursor.getString(cl_ind);
-				addMarker(map, st_lat, st_lon, cl_name, null, 0);
+				String st_id = Integer.toString(st_cursor.getInt(id_ind));
+				addMarker(map, st_lat, st_lon, cl_name, st_id, 0);
 			}	
 		}		
 	}
 	private void getStoresWithPromo(int cat) {
+		
 		ArrayList<Integer> pa_lst = new ArrayList<Integer>();
 		Cursor pa_cursor = PromoCursor(cat);
 		if (pa_cursor != null && pa_cursor.moveToFirst()) {
@@ -104,6 +115,7 @@ public class PromoMapActivity extends AbstractMapActivity {
 				int s_id = ps_cursor.getInt(st_ind);
 				if(!store_lst.contains(s_id)) {
 					store_lst.add(s_id);
+					sp_hash.put(Integer.toString(s_id), pa_id);
 				}
 				ps_cursor.moveToNext();				
 			}			
@@ -130,5 +142,15 @@ public class PromoMapActivity extends AbstractMapActivity {
 		}
 		return (dbh.getReadableDatabase().rawQuery(s_query, null));
 	}
-	
+	@Override
+	public void onInfoWindowClick(Marker marker) {
+		String store_id = marker.getSnippet();
+		if (store_id != null) {
+			String promo = sp_hash.get(store_id);
+			Intent pa_intent = new Intent(this, PresentationDisplayActivity.class);
+			pa_intent.putExtra(IbabaiUtils.EXTRA_PA, promo);
+			pa_intent.putExtra("nav_flag", 1);
+			startActivity(pa_intent);
+		}
+	}	
 }

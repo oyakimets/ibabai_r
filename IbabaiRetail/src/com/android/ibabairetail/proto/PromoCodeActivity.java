@@ -1,7 +1,6 @@
 package com.android.ibabairetail.proto;
 
 import java.io.File;
-
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
@@ -60,7 +59,7 @@ public class PromoCodeActivity extends FragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		
 		switch (item.getItemId()) {
-		case R.id.home:
+		case android.R.id.home:
 			appExit();
 			return true;		
 		default:
@@ -69,8 +68,8 @@ public class PromoCodeActivity extends FragmentActivity {
 		}		
 		
 	}
-	public void HaveProblem(View view) {		
-	    	
+	public void HaveProblem(View view) {
+		
 		new ProblemDialogFragment().show(getSupportFragmentManager(), "problem");		
 	    
 	}
@@ -84,12 +83,14 @@ public class PromoCodeActivity extends FragmentActivity {
 		e_int.addCategory(Intent.CATEGORY_HOME);
 		e_int.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(e_int);
+		finish();
 		
 	}	
 	public void appExit() {
 		Intent e_int = new Intent(Intent.ACTION_MAIN);
 		e_int.addCategory(Intent.CATEGORY_HOME);
 		e_int.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		startActivity(e_int);		
+		startActivity(e_int);
+		finish();
 	}	
 }

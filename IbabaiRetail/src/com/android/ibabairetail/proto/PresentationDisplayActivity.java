@@ -9,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,18 +20,21 @@ public class PresentationDisplayActivity extends FragmentActivity {
 	private ViewPager pres_pager=null;
 	private PromoPresAdapter adapter=null;		
 	private String promoact_id;	
-	DatabaseHelper dbh;	
+	DatabaseHelper dbh;
+	Intent intent;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		intent = getIntent();
         super.onCreate(savedInstanceState);
         
         if(getSupportFragmentManager().findFragmentByTag(IbabaiUtils.MODEL) == null) {
         	getSupportFragmentManager().beginTransaction().add(new PromoModelFragment(), IbabaiUtils.MODEL).commit();
         	
-        }
-        
+        }        
         shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+        dbh = DatabaseHelper.getInstance(this);        
+        promoact_id=getIntent().getStringExtra(IbabaiUtils.EXTRA_PA); 
         
         if (shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0) == 0) {
         	setContentView(R.layout.presentation_pager); 
@@ -49,12 +51,8 @@ public class PresentationDisplayActivity extends FragmentActivity {
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setHomeButtonEnabled(true);
         ab.setDisplayShowHomeEnabled(true);
-        ab.setDisplayShowTitleEnabled(false);
-        
-        dbh = DatabaseHelper.getInstance(this);       
-        
-        promoact_id=getIntent().getStringExtra(IbabaiUtils.EXTRA_PA);        
-                
+        ab.setDisplayShowTitleEnabled(false);        
+                       
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -66,9 +64,9 @@ public class PresentationDisplayActivity extends FragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		
 		switch (item.getItemId()) {
-		case R.id.home:
-			NavUtils.navigateUpFromSameTask(this);
-			return true;
+		case android.R.id.home:			
+			finish();
+			return true;			
 		case R.id.action_delete:			
 			Bundle bundle = new Bundle();
 	    	bundle.putString("promoact", promoact_id);
@@ -115,6 +113,5 @@ public class PresentationDisplayActivity extends FragmentActivity {
 	}	
 	static File getConDir(Context ctxt) {
 		 return(new File(ctxt.getFilesDir(), IbabaiUtils.CON_BASEDIR));
-	 }	
-	
+	 }
 }
