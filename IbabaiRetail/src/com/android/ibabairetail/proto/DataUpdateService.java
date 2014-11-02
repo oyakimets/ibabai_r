@@ -65,9 +65,6 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			ed.putInt(IbabaiUtils.CITY, 0);
 			ed.apply();
 			
-			if (CitiesAvailability()) {
-				dbh.ClearCities();
-			}
 			try {
 				URL c_url=new URL(CITIES_URL);
 				HttpURLConnection con=(HttpURLConnection)c_url.openConnection();
@@ -81,8 +78,13 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 							
 				while ((line=reader.readLine()) != null) {
 					buf.append(line+"\n");
-				}							
-				loadCities(buf.toString());							
+				}
+				if (!buf.toString().isEmpty()) {
+					if (CitiesAvailability()) {
+						dbh.ClearCities();
+					}
+					loadCities(buf.toString());	
+				}											
 			}
 			catch (Exception e) {
 					Log.e(getClass().getSimpleName(), "Exception retrieving Cities data", e);
@@ -96,10 +98,11 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 						Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);						
 					}
 				}			 			
-			}			
+			}
+			
+			
 			GPSTracker gps = new GPSTracker(this);
-			current_loc = gps.getLocation();
-			  
+			current_loc = gps.getLocation();		  
 		
 			Cursor new_city_c = cityCursor();
 			int city_id_ind=new_city_c.getColumnIndex(DatabaseHelper.C_ID);
@@ -128,10 +131,7 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			
 			c_id=shared_prefs.getInt(IbabaiUtils.CITY, 0);				
 			
-			if (c_id != 0) {
-				if (StoresAvailability()) {
-					dbh.ClearStores();
-				}
+			if (c_id != 0 && CitiesAvailability()) {
 				
 				String STORES_URL = STORE_BASE_URL + Integer.toString(c_id) +".txt";
 				try {
@@ -147,8 +147,13 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 							
 					while ((line=reader.readLine()) != null) {
 						buf.append(line+"\n");
-					}							
-					loadStores(buf.toString(), city_id);							
+					}
+					if (!buf.toString().isEmpty()) {
+						if (StoresAvailability()) {
+							dbh.ClearStores();
+						}
+						loadStores(buf.toString(), city_id);
+					}
 				}
 				catch (Exception e) {
 					Log.e(getClass().getSimpleName(), "Exception retrieving store data", e);
@@ -165,73 +170,83 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 				}			 			
 			
 			
-				if (psAvailability()) {
-					dbh.ClearPromoStores();
-				}			
+				if (StoresAvailability()) {
 						
-				String SP_URL= SP_BASE_URL + Integer.toString(c_id) +".txt";
-				try {
-					URL sp_url=new URL(SP_URL);
-					HttpURLConnection con=(HttpURLConnection)sp_url.openConnection();
-					con.setRequestMethod("GET");
-					con.setReadTimeout(15000);
-					con.connect();
+					String SP_URL= SP_BASE_URL + Integer.toString(c_id) +".txt";
+					try {
+						URL sp_url=new URL(SP_URL);
+						HttpURLConnection con=(HttpURLConnection)sp_url.openConnection();
+						con.setRequestMethod("GET");
+						con.setReadTimeout(15000);
+						con.connect();
 				
-					reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-					StringBuilder buf = new StringBuilder();
-					String line = null;
+						reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
+						StringBuilder buf = new StringBuilder();
+						String line = null;
 				
-					while ((line=reader.readLine()) != null) {
-						buf.append(line+"\n");
-					}
-					loadPromoStores(buf.toString());
-				}
-				catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving promo_store data", e);
-				}
-				finally {
-					if (reader != null) {
-						try {
-							reader.close();
+						while ((line=reader.readLine()) != null) {
+							buf.append(line+"\n");
 						}
-						catch (IOException e) {
-							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
+						if (!buf.toString().isEmpty()) {
+							if (psAvailability()) {
+								dbh.ClearPromoStores();
+							}			
+							loadPromoStores(buf.toString());
 						}
 					}
-				}					
+					catch (Exception e) {
+						Log.e(getClass().getSimpleName(), "Exception retrieving promo_store data", e);
+					}
+					finally {
+						if (reader != null) {
+							try {
+								reader.close();
+							}
+							catch (IOException e) {
+								Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
+							}
+						}
+					}
+				}
+				
+				if (psAvailability()) {
 		
-				PROMO_URL = PROMO_BASE_URL+u_id+".txt";
-				try {
-					URL p_url=new URL(PROMO_URL);
-					HttpURLConnection con=(HttpURLConnection)p_url.openConnection();
-					con.setRequestMethod("GET");
-					con.setReadTimeout(15000);
-					con.connect();
+					PROMO_URL = PROMO_BASE_URL+u_id+".txt";
+					try {
+						URL p_url=new URL(PROMO_URL);
+						HttpURLConnection con=(HttpURLConnection)p_url.openConnection();
+						con.setRequestMethod("GET");
+						con.setReadTimeout(15000);
+						con.connect();
 					
-					reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-					buf = new StringBuilder();
-					String line = null;
+						reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
+						buf = new StringBuilder();
+						String line = null;
 					
-					while ((line=reader.readLine()) != null) {
-						buf.append(line+"\n");
-					}
-					loadPromos(buf.toString(), u_id);
-					killPromos(buf.toString(), u_id);	
-				}
-				catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving promo data", e);
-				}
-				finally {
-					if (reader != null) {
-						try {
-							reader.close();
+						while ((line=reader.readLine()) != null) {
+							buf.append(line+"\n");
 						}
-						catch (IOException e) {
-							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
+						if (!buf.toString().isEmpty()) {
+							loadPromos(buf.toString(), u_id);
+							killPromos(buf.toString(), u_id);
 						}
 					}
-				}		
-			}	    
+					catch (Exception e) {
+						Log.e(getClass().getSimpleName(), "Exception retrieving promo data", e);
+					}
+					finally {
+						if (reader != null) {
+							try {
+								reader.close();
+							}
+							catch (IOException e) {
+								Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
+							}
+						}
+					}
+				}
+			}
+			
 			WakefulIntentService.sendWakefulWork(this, ConUpdateService.class);		
 			ResetStore();
 			if (servicesConnected()) {
@@ -294,6 +309,20 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 		 String p_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_P);
 		 return(dbh.getReadableDatabase().rawQuery(p_query, null));
 	 }
+	 private Cursor psCursor(String pa_id){
+		 String sp_query = String.format("SELECT * FROM %s WHERE promoact_id="+pa_id, DatabaseHelper.TABLE_SP);
+		 return(dbh.getReadableDatabase().rawQuery(sp_query, null));
+	 }
+	 private boolean CheckPromosInPs(int pa_id) {
+		 String promo_id = Integer.toString(pa_id);
+		 Cursor ps_cursor = psCursor(promo_id);
+		 if (ps_cursor != null && ps_cursor.getCount() >0) {
+			 return true;
+		 }
+		 else {
+			 return false;
+		 }
+	 }
 	 
 	 private void loadStores(String st, int id) throws JSONException {
 		JSONObject jso = new JSONObject(st);
@@ -317,7 +346,7 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 		promoacts = jso.optJSONArray("promos");
 		if (promoacts.length() > 0) {
 			for (int i=0; i<update_pa.size(); i++) {
-				if (!current_pa.contains(update_pa.get(i))) {
+				if (!current_pa.contains(update_pa.get(i)) && CheckPromosInPs(update_pa.get(i))) {
 					JSONObject promoact = promoacts.optJSONObject(i);
 					Promoact p = new Promoact(promoact);
 					dbh.AddPromo(p);

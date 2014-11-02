@@ -106,14 +106,16 @@ public class ARIntentService extends IntentService {
 				s_cursor.close();
 				dbh.close();
 			}
-		}
-		try {
-			gfr.addGeofences(gf_list);
-				
-		}
-		catch (UnsupportedOperationException e) {
-			Log.e(GeofenceUtils.APPTAG, getString(R.string.add_geofences_already_requested_error));
-		}
+			if (!gf_list.isEmpty()) {
+				try {
+					gfr.addGeofences(gf_list);
+					
+				}
+				catch (UnsupportedOperationException e) {
+					Log.e(GeofenceUtils.APPTAG, getString(R.string.add_geofences_already_requested_error));
+				}
+			}
+		}		
 	}
 	private Cursor StoresCursor() {		
 		String s_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_S);

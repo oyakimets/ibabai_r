@@ -3,9 +3,13 @@ package com.android.ibabairetail.proto;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
@@ -14,13 +18,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class HelpActivity extends Activity {
 	FaqListAdapter listAdapter;
 	ExpandableListView expListView;
 	List<String> listDataHeader;
-	HashMap<String, List<String>> listDataChild;	
+	HashMap<String, List<String>> listDataChild;
+	SharedPreferences shared_prefs;
+	DatabaseHelper dbh;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +46,23 @@ public class HelpActivity extends Activity {
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setHomeButtonEnabled(true);
         ab.setDisplayShowHomeEnabled(true);
-        ab.setDisplayShowTitleEnabled(false);        
+        ab.setDisplayShowTitleEnabled(false);
+        
+        dbh = DatabaseHelper.getInstance(this);
+        shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+        TextView tv_1 = (TextView)findViewById(R.id.debug_1);
+        TextView tv_2 = (TextView)findViewById(R.id.debug_2);
+        TextView tv_3 = (TextView)findViewById(R.id.debug_3);
+        
+        String city = Integer.toString(shared_prefs.getInt(IbabaiUtils.C_ID, 0));
+        tv_1.setText(city);
+        Cursor c_cursor = CityCursor();
+        Cursor s_cursor = StoreCursor();
+        tv_2.setText(Integer.toString(c_cursor.getCount()));      
+        tv_3.setText(Integer.toString(s_cursor.getCount()));
+        c_cursor.close();
+        s_cursor.close();
+        dbh.close();        
         
 	}
 	private void prepareListData() {
@@ -111,5 +134,14 @@ public class HelpActivity extends Activity {
 		emailInt.putExtra(Intent.EXTRA_SUBJECT, "Support request");
 		startActivity(Intent.createChooser(emailInt, "Send email"));
 	}
+	
+	private Cursor CityCursor() {
+		 String c_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_C);
+		 return(dbh.getReadableDatabase().rawQuery(c_query, null));
+	 }
+	private Cursor StoreCursor() {
+		 String s_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_S);
+		 return(dbh.getReadableDatabase().rawQuery(s_query, null));
+	 }
 
 }
