@@ -4,12 +4,16 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+
 import android.app.ActionBar;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -17,12 +21,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+
+import com.android.ibabairetail.proto.MainActivity.ErrorDialogFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
-public class CoreActivity extends FragmentActivity {
-	private String sl_count = null;				
+public class CoreActivity extends FragmentActivity {			
 	private ListView PromoList;
 	private PromoListAdapter pl_adapter=null;
 	private ArrayList<Drawable> PromoListItems;		
@@ -45,16 +51,19 @@ public class CoreActivity extends FragmentActivity {
         ab.setDisplayHomeAsUpEnabled(true);
         ab.setHomeButtonEnabled(true);
         ab.setDisplayShowHomeEnabled(true);
-        ab.setDisplayShowTitleEnabled(false);       
-                
-		if (servicesConnected()) {
-			Intent ar_intent = new Intent(this, ARService.class);
-        	startService(ar_intent);        	
-		}
-        else {
-        	Intent start_i = new Intent(this, LocationService.class);
-      	    startService(start_i);      	   
-        } 
+        ab.setDisplayShowTitleEnabled(false);
+        
+        if (isNetworkAvailable(this)) {
+        	if (servicesConnected()) {
+    			Intent ar_intent = new Intent(this, ARService.class);
+            	startService(ar_intent);        	
+    		}
+            else {       	
+            	
+            	Intent start_i = new Intent(this, LocationService.class);
+          	    startService(start_i);      	   
+            }         	
+        } 	
 		
 		DataUpdateReceiver.scheduleAlarm(this);
        
@@ -82,7 +91,7 @@ public class CoreActivity extends FragmentActivity {
 				String dir=dbPromos.get(j);
 				File pa_folder = new File(getConDir(CoreActivity.this), dir);
 				if (pa_folder.exists()) {
-					File tag_file = new File(pa_folder, "con_tag.jpg");
+					File tag_file = new File(pa_folder, "tag.jpg");
 					String tag_path = tag_file.getAbsolutePath();												
 					Drawable d_promo = Drawable.createFromPath(tag_path);
 					PromoListItems.add(d_promo);								
@@ -101,21 +110,28 @@ public class CoreActivity extends FragmentActivity {
 		 
 	@Override
 	protected void onResume() {
+		shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
+		cat_index=shared_prefs.getInt(DatabaseHelper.CAT, 0);		
+		Button block_btn = (Button)findViewById(R.id.btn_block_list);
+		if (shared_prefs.contains(IbabaiUtils.BLOCK_COUNTER) && shared_prefs.getInt(IbabaiUtils.BLOCK_COUNTER, 0)>0){
+			block_btn.setText("Block list"+"("+Integer.toString(shared_prefs.getInt(IbabaiUtils.BLOCK_COUNTER, 0))+")");
+		}
+		else {
+			block_btn.setText("Block list");
+		}
 		
-		GPSTracker gps = new GPSTracker(this);
-        if(!gps.canGetLocation()) {
-        	LocDialogFragment ldf = new LocDialogFragment();
-        	ldf.show(getSupportFragmentManager(), "location");
-        }               
-		
-		shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);		
-		cat_index=shared_prefs.getInt(DatabaseHelper.CAT, 0);
-		       
 		dbh=DatabaseHelper.getInstance(getApplicationContext());
 		dbPromos=new ArrayList<String>();			
 		PromoList=(ListView) findViewById(R.id.promo_list);
 		PromoListItems = new ArrayList<Drawable>();
 		LoadPromoTags();		
+		
+		GPSTracker gps = new GPSTracker(this);
+        if(!gps.canGetLocation()) {
+        	LocDialogFragment ldf = new LocDialogFragment();
+        	ldf.show(getSupportFragmentManager(), "location");
+        }
+        
        
         super.onResume();		
 	}	
@@ -124,6 +140,7 @@ public class CoreActivity extends FragmentActivity {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			displayPromoAction(position);
+			finish();
 		}		
 	}
 	private void displayPromoAction(int position) {
@@ -190,17 +207,7 @@ public class CoreActivity extends FragmentActivity {
 	static File getConDir(Context ctxt) {
 		 return(new File(ctxt.getFilesDir(), IbabaiUtils.CON_BASEDIR));
 	 }	
-	private String getStoplistCount() {
-		String sl = null;
-		File sl_dir = getStopDir(this);
-		if (sl_dir.exists()) {
-			int count = sl_dir.list().length;
-			if (count>0) {
-				sl = Integer.toString(count);
-			}			
-		}
-		return sl;		
-	}
+	
 	static File getStopDir(Context ctxt) {
 		 return(new File(ctxt.getFilesDir(), IbabaiUtils.SL_BASEDIR));
 	 }
@@ -212,7 +219,13 @@ public class CoreActivity extends FragmentActivity {
 			return true;
 		}
 		else {
-			Log.d(GeofenceUtils.APPTAG, "Google Play Service is not available");			
+			Log.d(GeofenceUtils.APPTAG, "Google Play Service is not available");
+			Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this, 0);
+    		if (dialog != null) {
+    			ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+    			errorFragment.setDialog(dialog);
+    			errorFragment.show(getFragmentManager(), "PlayService error");
+    		}        			
 			return false;
 		}
 	}
@@ -223,7 +236,7 @@ public class CoreActivity extends FragmentActivity {
 	public void toStopList(View view) {
 		Intent sl_intent = new Intent(this, stopListActivity.class);
 		startActivity(sl_intent);
-		
+		finish();		
 	}
 	public void appExit() {
 		Intent e_int = new Intent(Intent.ACTION_MAIN);
@@ -231,5 +244,19 @@ public class CoreActivity extends FragmentActivity {
 		e_int.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(e_int);
 		finish();
-	}	
+	}
+	public static boolean isNetworkAvailable(Context ctxt) {
+		boolean outcome = false;
+		if (ctxt != null) {
+			ConnectivityManager cm = (ConnectivityManager) ctxt.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo[] network_info = cm.getAllNetworkInfo();
+			for (NetworkInfo ni:network_info) {
+				if (ni.isConnected()) {
+					outcome = true;
+					break;
+				}
+			}
+		}
+		return outcome;
+	}
 }

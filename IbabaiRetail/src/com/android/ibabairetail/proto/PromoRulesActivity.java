@@ -22,7 +22,7 @@ SharedPreferences shared_prefs;
         File pa_folder = new File(getConDir(this), dir);
         if (getSupportFragmentManager().findFragmentById(R.id.promo_rules)==null) {
         	if (pa_folder.exists()) {
-        		Fragment f=SimpleContentFragment.newInstance("file:///"+pa_folder+"/rules.html");
+        		Fragment f=SimpleContentFragment.newInstance("file:///"+pa_folder+"/rules.jpg");
         		getSupportFragmentManager().beginTransaction().add(R.id.promo_rules, f).commit();
         	}
 		}		

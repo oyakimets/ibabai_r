@@ -35,8 +35,18 @@ public class TosDialogFragment extends DialogFragment implements DialogInterface
 	
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
-		Intent i = new Intent(getActivity(), SignupActivity.class);
-    	startActivity(i);
+		switch (which) {
+		case AlertDialog.BUTTON_NEGATIVE:
+			dismiss();
+			break;
+		case AlertDialog.BUTTON_POSITIVE:
+			Intent upload_i = new Intent(getActivity(), DataUploadService.class);
+			getActivity().startService(upload_i);			
+			Intent i = new Intent(getActivity(), SignupActivity.class);
+			startActivity(i);
+			break;
+		default:
+			break;
+		}
 	}
-
 }

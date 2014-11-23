@@ -53,15 +53,20 @@ public class HelpActivity extends Activity {
         TextView tv_1 = (TextView)findViewById(R.id.debug_1);
         TextView tv_2 = (TextView)findViewById(R.id.debug_2);
         TextView tv_3 = (TextView)findViewById(R.id.debug_3);
-        
-        String city = Integer.toString(shared_prefs.getInt(IbabaiUtils.C_ID, 0));
-        tv_1.setText(city);
-        Cursor c_cursor = CityCursor();
+        Cursor p_cursor = PromoCursor();
+        String api_key = shared_prefs.getString(IbabaiUtils.API_KEY, "NONE");
+        tv_1.setText(Integer.toString(p_cursor.getCount()));        
+        Cursor s_cursor = StoreCursor();        
+        tv_2.setText(Integer.toString(s_cursor.getCount()));
+        Cursor ps_cursor = psCursor();
+        tv_3.setText(Integer.toString(ps_cursor.getCount()));
+        /*
         Cursor s_cursor = StoreCursor();
-        tv_2.setText(Integer.toString(c_cursor.getCount()));      
+          
         tv_3.setText(Integer.toString(s_cursor.getCount()));
         c_cursor.close();
         s_cursor.close();
+        */
         dbh.close();        
         
 	}
@@ -142,6 +147,14 @@ public class HelpActivity extends Activity {
 	private Cursor StoreCursor() {
 		 String s_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_S);
 		 return(dbh.getReadableDatabase().rawQuery(s_query, null));
+	 }
+	private Cursor psCursor() {
+		 String ps_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_SP);
+		 return(dbh.getReadableDatabase().rawQuery(ps_query, null));
+	 }
+	private Cursor PromoCursor() {
+		 String p_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_P);
+		 return(dbh.getReadableDatabase().rawQuery(p_query, null));
 	 }
 
 }

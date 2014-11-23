@@ -64,8 +64,15 @@ public class PresentationDisplayActivity extends FragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		
 		switch (item.getItemId()) {
-		case android.R.id.home:			
-			finish();
+		case android.R.id.home:
+			if (shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0) == 0) {
+				Intent core_intent = new Intent(this, CoreActivity.class);
+				startActivity(core_intent);
+				finish();
+			}
+			else {
+				appExit();
+			}
 			return true;			
 		case R.id.action_delete:			
 			Bundle bundle = new Bundle();
@@ -114,4 +121,19 @@ public class PresentationDisplayActivity extends FragmentActivity {
 	static File getConDir(Context ctxt) {
 		 return(new File(ctxt.getFilesDir(), IbabaiUtils.CON_BASEDIR));
 	 }
+	@Override
+	public void onBackPressed() {
+		if (shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0) == 0) {
+			Intent core_int = new Intent(this, CoreActivity.class);
+			startActivity(core_int);
+		}
+		finish();
+	}
+	public void appExit() {
+		Intent e_int = new Intent(Intent.ACTION_MAIN);
+		e_int.addCategory(Intent.CATEGORY_HOME);
+		e_int.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(e_int);
+		finish();
+	}
 }

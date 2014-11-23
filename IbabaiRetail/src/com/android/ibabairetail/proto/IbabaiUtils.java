@@ -6,7 +6,7 @@ public class IbabaiUtils {
 	public static final String CITY="city";
 	public static final String USER_ID="user_id";
 	public static final String BALANCE = "Balance";
-	public static final String AUTH_TOKEN = "AuthToken";
+	public static final String API_KEY = "api_key";
 	public static final String EMAIL = "email";
 	public static final String PHONE = "phone";
 	public static final String AGE = "age";
@@ -37,13 +37,18 @@ public class IbabaiUtils {
 	public static final String PA_UPDATE="updated";
 	public static final String STORE_TIME="store_time";
 	public static final String STORE_ENTRY_TIME="store_entry_time";
+	public static final String BLOCK_COUNTER="block_counter";
 	
 	
 	public final static String BASE_API_ENDPOINT_URL="http://192.168.1.103:3000/api/v1/";
-	public static final String LOGS_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"cust_logs.json";
-	public static final String CON_BASE_URL = "http://ibabai.picrunner.net/retail/promo_content/";
+	public static final String LOGS_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"customer_logs.json";
+	public static final String CON_BASE_URL = "http://192.168.1.103:3000/promo_zip/";
 	public static final String PAYMENT_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"transactions.json";
-	public final static String REGISTER_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"registrations";
+	public final static String REGISTER_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"customers";
+	public static final String CITIES_URL = BASE_API_ENDPOINT_URL+"city_uploads" ;
+	public static final String STORE_BASE_URL = BASE_API_ENDPOINT_URL+"store_uploads.json" ; ;
+	public static final String PROMO_NEW_USER_URL = BASE_API_ENDPOINT_URL+"promo_uploads.json" ;;
+	public static final String PS_BASE_URL = BASE_API_ENDPOINT_URL+"ps_uploads" ;;
 	public static final String CON_EXT="con_ext.zip";
 	public static final String CON_BASEDIR="promo_content";
 	public static final String PREF_CON_DIR="pendingConDir";

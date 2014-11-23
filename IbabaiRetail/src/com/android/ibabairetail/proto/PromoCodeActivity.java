@@ -40,7 +40,7 @@ public class PromoCodeActivity extends FragmentActivity {
         String dir = Integer.toString(a_promo);
         File pa_folder = new File(getConDir(PromoCodeActivity.this), dir);
 		if (pa_folder.exists()) {
-			File tag_file = new File(pa_folder, "gratitude.png");
+			File tag_file = new File(pa_folder, "exit.png");
 			String grat_path = tag_file.getAbsolutePath();												
 			Drawable d_grat = Drawable.createFromPath(grat_path);
 			iv.setImageDrawable(d_grat);

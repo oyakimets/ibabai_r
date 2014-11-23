@@ -27,13 +27,9 @@ import com.savagelook.android.UrlJsonAsyncTask;
 
 
 public class SignupActivity extends FragmentActivity {	
-	/*private DbLoadTask db_load = null;
-	 * 	
-	 */
 	Location current_loc;
 	private String s_email;	
 	private String s_phone;	
-	DatabaseHelper dbh;	
 	SharedPreferences shared_prefs;		
 	
 	@Override
@@ -54,17 +50,12 @@ public class SignupActivity extends FragmentActivity {
         	ndf.show(getSupportFragmentManager(), "network");
  		}
  		
-        /*
+        
         GPSTracker gps = new GPSTracker(this);
         if(!gps.canGetLocation()) {
         	LocDialogFragment ldf = new LocDialogFragment();
         	ldf.show(getSupportFragmentManager(), "location");
-        }
-        current_loc = gps.getLocation();             
-        dbh = DatabaseHelper.getInstance(getApplicationContext());
-        db_load=new DbLoadTask();
-        db_load.execute();
-        */
+        }     
         
 	}
 	
@@ -74,20 +65,12 @@ public class SignupActivity extends FragmentActivity {
 		s_email = email.getText().toString();
 		s_phone = phone.getText().toString();			 
 						
-		if ( s_email.length() >= 5 && s_phone.length() == 10) {
-			Editor ed = shared_prefs.edit();
-			ed.putString(IbabaiUtils.AUTH_TOKEN, "fuck_you");
-			ed.putString(IbabaiUtils.USER_ID, "437");
-			ed.putString(IbabaiUtils.EMAIL, "qwer@ty.com");
-			ed.putString(IbabaiUtils.PHONE, "1234567890");			
-			ed.apply();
-			Intent sign_intent = new Intent(this, CoreActivity.class);
-			startActivity(sign_intent);
-			/*
+		if ( s_email.length() >= 5 && s_phone.length() == 10) {			
+			
 			RegisterTask register = new RegisterTask(this);
 			register.setMessageLoading("Creating account...");
 			register.execute(IbabaiUtils.REGISTER_API_ENDPOINT_URL);
-			*/
+			
 		}
 		else {
 			if (s_email.length() < 5) {
@@ -100,78 +83,7 @@ public class SignupActivity extends FragmentActivity {
 		
 	}
 	
-	/*
-	private class DbLoadTask extends AsyncTask<ContentValues, Void, Void> {		
-		 
-		 @Override
-		 protected Void doInBackground(ContentValues... cv) {		 
-			 
-			 try {
-				StringBuilder buf=new StringBuilder();
-				InputStream json=getAssets().open("data/cities.json"); 	
-				BufferedReader in = new BufferedReader(new InputStreamReader(json));
-				String str;
-				while((str=in.readLine()) != null ) {
-					buf.append(str);
-				}				
-				in.close();
-				
-				JSONArray ja=new JSONArray(buf.toString());				
-				for(int i=0; i<ja.length(); i++) {					
-					JSONObject c_jo = ja.optJSONObject(i);
-					City c = new City(c_jo);
-					dbh.AddCity(c);						 
-				}	
-								 
-			}				 
-			catch(Exception e) {
-				e.printStackTrace();
-			}	
-			 
-			 return null;
-		 }		 
-		 
-		 @Override 
-		 public void onPostExecute(Void result) {
-			 super.onPostExecute(result);			 
-			 
-			 Cursor new_city_c = cityCursor();
-			 int city_id_ind=new_city_c.getColumnIndex(DatabaseHelper.C_ID);
-		 	 int lat_ind=new_city_c.getColumnIndex(DatabaseHelper.LAT);
-		 	 int lon_ind=new_city_c.getColumnIndex(DatabaseHelper.LON);
-		 	 int rad_ind=new_city_c.getColumnIndex(DatabaseHelper.RAD);
-			 if (new_city_c != null) {
-				 new_city_c.moveToFirst();
-				 while(new_city_c.isAfterLast()!=true) {					 
-				 	 int city_id=new_city_c.getInt(city_id_ind);
-				 	 double latitude=new_city_c.getDouble(lat_ind);
-				 	 double longitude=new_city_c.getDouble(lon_ind);
-				 	 int radius=new_city_c.getInt(rad_ind);
-				 	 Location location = new Location("city");
-				 	 location.setLatitude(latitude);
-				 	 location.setLongitude(longitude);
-				 	 float distance=current_loc.distanceTo(location);
-				 	 if (distance <= radius) {
-				 		shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
-				  		Editor edit=shared_prefs.edit();
-				 		edit.putInt(IbabaiUtils.CITY, city_id);
-				 		edit.apply();
-				 		break;
-				 	 }
-				 	 new_city_c.moveToNext();
-			 	}
-			 }
-			 startService(new Intent(SignupActivity.this, StoresUploadService.class));
-			 new_city_c.close();
-			 dbh.close();			 
-		     return;  
-		 }
-		 private Cursor cityCursor() {
-			 String c_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_C);
-			 return(dbh.getReadableDatabase().rawQuery(c_query, null));
-		 }
-	 }
-	 */
+	
 	private class RegisterTask extends UrlJsonAsyncTask {
 		public RegisterTask(Context ctxt) {
 			super(ctxt);
@@ -224,17 +136,18 @@ public class SignupActivity extends FragmentActivity {
 				if (json.getBoolean("success")) {
 					shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
 					Editor e = shared_prefs.edit();
-					e.putString(IbabaiUtils.AUTH_TOKEN, json.getJSONObject("data").getString("auth_token"));
-					e.putString(IbabaiUtils.USER_ID, Integer.toString(json.getJSONObject("data").getJSONObject("customer").getInt("id")));
-					e.putString(IbabaiUtils.EMAIL, json.getJSONObject("data").getJSONObject("customer").getString("email"));
-					e.putString(IbabaiUtils.PHONE, json.getJSONObject("data").getJSONObject("customer").getString("phone"));
+					e.putString(IbabaiUtils.API_KEY, json.getJSONObject("data").getString("api_key"));					
 					e.apply();
 					
 					Intent i=new Intent(getApplicationContext(), CoreActivity.class);
 					startActivity(i);
+					Toast.makeText(SignupActivity.this, "Wellcome to Ibabai!", Toast.LENGTH_LONG).show();
 					finish();
 				}
-				Toast.makeText(SignupActivity.this, json.getString("info"), Toast.LENGTH_LONG).show();
+				else {
+					Toast.makeText(SignupActivity.this, "Registration failed. Try again or visit HELP page", Toast.LENGTH_LONG).show();
+					Log.d("CLIENT", json.getString("info"));
+				}
 			}
 			catch(Exception e) {
 				Toast.makeText(SignupActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();

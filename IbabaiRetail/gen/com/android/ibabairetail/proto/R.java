@@ -1923,11 +1923,11 @@ containing a value of this type.
         public static final int promo_pres=0x7f0d0002;
     }
     public static final class string {
-        public static final int ab_activation=0x7f070076;
+        public static final int ab_activation=0x7f070075;
         public static final int ab_feedback=0x7f070038;
         public static final int ab_help=0x7f070039;
         public static final int ab_log=0x7f07003a;
-        public static final int ab_map_ps=0x7f070079;
+        public static final int ab_map_ps=0x7f070078;
         public static final int ab_market=0x7f070036;
         public static final int ab_password=0x7f07004c;
         public static final int ab_profile=0x7f07003b;
@@ -1975,18 +1975,17 @@ containing a value of this type.
         /**  Description of a share target (both in the list of such or the default share button) in a ShareActionProvider (share UI). [CHAR LIMIT=NONE] 
          */
         public static final int abc_shareactionprovider_share_with_application=0x7f070025;
-        public static final int activate_promo=0x7f070072;
-        public static final int active_promos=0x7f070070;
+        public static final int activate_promo=0x7f070071;
+        public static final int active_promos=0x7f07006f;
         public static final int add_geofences_already_requested_error=0x7f070066;
         public static final int add_geofences_result_failure=0x7f07004e;
         public static final int add_geofences_result_succes=0x7f07004d;
         public static final int app_name=0x7f070027;
         public static final int ar_connected=0x7f07006c;
         public static final int ar_disconnected=0x7f07006b;
-        public static final int block_list=0x7f07006f;
         public static final int call_back=0x7f07003f;
-        public static final int code_heading=0x7f070074;
-        public static final int code_tag=0x7f070073;
+        public static final int code_heading=0x7f070073;
+        public static final int code_tag=0x7f070072;
         /**  Button in confirmation dialog to enable Google Play services.  Clicking it
         will direct user to application settings of Google Play services where they
         can enable it [CHAR LIMIT=40] 
@@ -2090,7 +2089,7 @@ containing a value of this type.
         public static final int connection_error_outdated=0x7f07005e;
         public static final int connection_error_sign_in_required=0x7f07005f;
         public static final int connection_error_unknown=0x7f070060;
-        public static final int desc_code_tag=0x7f070077;
+        public static final int desc_code_tag=0x7f070076;
         public static final int desc_delete_icon=0x7f070033;
         public static final int desc_help_icon=0x7f070031;
         public static final int desc_item_icon=0x7f070030;
@@ -2103,7 +2102,7 @@ containing a value of this type.
         public static final int dialog_net_title=0x7f070069;
         public static final int dialog_network=0x7f07006a;
         public static final int dialog_ni=0x7f070047;
-        public static final int dialog_problem=0x7f070078;
+        public static final int dialog_problem=0x7f070077;
         public static final int dialog_sl=0x7f070048;
         public static final int dialog_tos=0x7f07002e;
         public static final int dialog_unblock=0x7f070049;
@@ -2113,7 +2112,7 @@ containing a value of this type.
         public static final int geofence_transition_exited=0x7f070063;
         public static final int geofence_transition_invalid_type=0x7f070065;
         public static final int geofence_transition_unknown=0x7f070064;
-        public static final int have_problem=0x7f070075;
+        public static final int have_problem=0x7f070074;
         public static final int introduction=0x7f070028;
         public static final int invalid_action_detail=0x7f070067;
         /**  <array name="core_menu_icons" >
@@ -2130,7 +2129,7 @@ containing a value of this type.
     
          */
         public static final int menu=0x7f070034;
-        public static final int no_map=0x7f07007a;
+        public static final int no_map=0x7f070079;
         public static final int not_inter=0x7f070043;
         public static final int on_upgrade_error=0x7f070041;
         public static final int promo_map=0x7f07006e;
@@ -2147,7 +2146,7 @@ containing a value of this type.
         public static final int send_mail=0x7f070040;
         public static final int signup=0x7f07002d;
         public static final int stop_list=0x7f070044;
-        public static final int stores_with_promo=0x7f070071;
+        public static final int stores_with_promo=0x7f070070;
         public static final int tos=0x7f07002b;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 

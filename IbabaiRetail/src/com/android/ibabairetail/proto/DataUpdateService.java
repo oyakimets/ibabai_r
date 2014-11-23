@@ -131,7 +131,7 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			
 			c_id=shared_prefs.getInt(IbabaiUtils.CITY, 0);				
 			
-			if (c_id != 0 && CitiesAvailability()) {
+			if (c_id != 0) {
 				
 				String STORES_URL = STORE_BASE_URL + Integer.toString(c_id) +".txt";
 				try {

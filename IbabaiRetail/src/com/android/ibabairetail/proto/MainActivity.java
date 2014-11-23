@@ -6,15 +6,14 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 
 public class MainActivity extends FragmentActivity {
 
@@ -27,22 +26,26 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        	setContentView(R.layout.activity_main);        
+        setContentView(R.layout.activity_main);        
         	
-        	shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);        	   	
+        shared_prefs = getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);        	   	
                         
-        	pager=(ViewPager)findViewById(R.id.pager);
-        	adapter=new PresentationAdapter(getSupportFragmentManager());
-        	pager.setAdapter(adapter);
-        	findViewById(R.id.pager).setVisibility(View.VISIBLE);
+        pager=(ViewPager)findViewById(R.id.pager);
+        adapter=new PresentationAdapter(getSupportFragmentManager());
+        pager.setAdapter(adapter);
+        findViewById(R.id.pager).setVisibility(View.VISIBLE);
         
-        	ActionBar ab = getActionBar(); 
-        	ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        	ab.setCustomView(R.layout.ab_intro);
-        	ab.setDisplayShowHomeEnabled(true);
-        	ab.setDisplayShowTitleEnabled(false);       	
-        	
-        	
+        ActionBar ab = getActionBar(); 
+        ab.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        ab.setCustomView(R.layout.ab_intro);
+        ab.setDisplayShowHomeEnabled(true);
+        ab.setDisplayShowTitleEnabled(false);         	
+        
+        GPSTracker gps = new GPSTracker(this);
+        if(!gps.canGetLocation()) {
+        	LocDialogFragment ldf = new LocDialogFragment();
+        	ldf.show(getSupportFragmentManager(), "location");
+        }	
     }
     @Override
     protected void onResume() {
@@ -50,7 +53,7 @@ public class MainActivity extends FragmentActivity {
     	if( getIntent().getBooleanExtra("EXIT", false)) {
     		finish();
     	}
-    	if(shared_prefs.contains(IbabaiUtils.AUTH_TOKEN)) {
+    	if(shared_prefs.contains(IbabaiUtils.API_KEY)) {
     		a_promo = shared_prefs.getInt(IbabaiUtils.ACTIVE_PROMO, 0);
     		if (a_promo == 0) {
     			Intent launchIntent = new Intent(this, CoreActivity.class);
@@ -62,23 +65,7 @@ public class MainActivity extends FragmentActivity {
     			startActivity(promo_intent);    			
     		}
     		finish();    		
-    	}
-    	else {
-    		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);    		
-    		if (ConnectionResult.SUCCESS == resultCode) {
-    			Log.d("GF Detection", "Google Play Service is available");
-    			Intent upload_intent = new Intent(this, DataUploadService.class);
-            	startService(upload_intent);
-    		}
-    		else {
-    			Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this, 0);
-    			if (dialog != null) {
-    				ErrorDialogFragment errorFragment = new ErrorDialogFragment();
-    				errorFragment.setDialog(dialog);
-    				errorFragment.show(getFragmentManager(), "PlayService error");
-    			}    			
-    		}    		 
-    	}
+    	}    	
     	super.onResume();
     }
     
@@ -88,7 +75,13 @@ public class MainActivity extends FragmentActivity {
     }
     
     public void signUp(View view) {
-    	new TosDialogFragment().show(getSupportFragmentManager(), "tos");    	
+    	if (isNetworkAvailable(this)) {
+    		new TosDialogFragment().show(getSupportFragmentManager(), "tos");
+    	}
+    	else {
+    		NetworkDialogFragment ndf = new NetworkDialogFragment();
+        	ndf.show(getSupportFragmentManager(), "network");
+    	}
     	
     }
 
@@ -125,5 +118,19 @@ public class MainActivity extends FragmentActivity {
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			return m_dialog;
 		}
-	}	
+	}
+	public static boolean isNetworkAvailable(Context ctxt) {
+		boolean outcome = false;
+		if (ctxt != null) {
+			ConnectivityManager cm = (ConnectivityManager) ctxt.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo[] network_info = cm.getAllNetworkInfo();
+			for (NetworkInfo ni:network_info) {
+				if (ni.isConnected()) {
+					outcome = true;
+					break;
+				}
+			}
+		}
+		return outcome;
+	}
 }

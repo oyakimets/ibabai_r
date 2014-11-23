@@ -12,6 +12,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	static final String DATE="date";
 	static final String AGENT="agent";
 	static final String AMOUNT="amount";
+	static final String ADDRESS="address";
 	static final String S_ID="store_id";
 	static final String C_ID="city_id";
 	static final String LAT = "latitude";
@@ -49,7 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {		
-		db.execSQL("CREATE TABLE stores (_id INTEGER PRIMARY KEY, store_id INTEGER, client_id INTEGER, client_name STRING, latitude REAL, longitude REAL, radius INTEGER, category INTEGER);");
+		db.execSQL("CREATE TABLE stores (_id INTEGER PRIMARY KEY, store_id INTEGER, client_id INTEGER, client_name STRING, latitude REAL, longitude REAL, radius INTEGER, category INTEGER, address STRING);");
 		db.execSQL("CREATE TABLE promoacts (_id INTEGER PRIMARY KEY, promoact_id INTEGER, client_id INTEGER, discount REAL DEFAULT 0.0, stopped INTEGER DEFAULT 0, category INTEGER);");		
 		db.execSQL("CREATE TABLE cities (_id INTEGER PRIMARY KEY, city_id INTEGER, latitude REAL, longitude REAL, radius INTEGER);");
 		db.execSQL("CREATE TABLE promo_stores (_id INTEGER PRIMARY KEY, store_id INTEGER, promoact_id INTEGER);");
@@ -80,7 +81,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		s_cv.put(DatabaseHelper.CAT, s.getCatInd());
 		s_cv.put(DatabaseHelper.LAT, s.getLat());
 		s_cv.put(DatabaseHelper.LON, s.getLon());
-		s_cv.put(DatabaseHelper.RAD, s.getStoreRadius());		
+		s_cv.put(DatabaseHelper.RAD, s.getStoreRadius());
+		s_cv.put(DatabaseHelper.ADDRESS, s.getAddress());
 		db.insert(DatabaseHelper.TABLE_S, DatabaseHelper.S_ID, s_cv);
 		db.close();
 	}
@@ -158,6 +160,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		cv.put(DatabaseHelper.STOP, code);
 		db.update(DatabaseHelper.TABLE_P, cv, DatabaseHelper.P_ID+"="+pa_id, null);
 		db.close();
-	}	
+	}
 	
 }

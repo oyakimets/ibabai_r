@@ -29,4 +29,7 @@ public class Store {
 	public int getCatInd() {
 		return(store.optInt("category"));
 	}
+	public String getAddress() {
+		return(store.optString("address"));
+	}
 }

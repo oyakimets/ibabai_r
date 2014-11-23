@@ -2,10 +2,14 @@ package com.android.ibabairetail.proto;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,14 +24,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
-public class DataUploadService extends IntentService {
-	private static final String STORE_BASE_URL = "http://ibabai.picrunner.net/retail/city_stores/";
-	private static final String PROMO_NEW_USER_URL = "http://ibabai.picrunner.net/retail/promo_users/0.txt";
-	private static final String SP_BASE_URL = "http://ibabai.picrunner.net/retail/promo_stores/";
-	private static final String CITIES_URL = "http://ibabai.picrunner.net/retail/cities.txt";
+public class DataUploadService extends IntentService {	
 	private ArrayList<Integer> city_pa;	
-	private JSONArray promoacts = null;
-	private StringBuilder buf;	
+	private JSONArray promoacts = null;	
 	private int city_id;
 	private int c_id;	
 	BufferedReader reader=null;
@@ -47,38 +46,7 @@ public class DataUploadService extends IntentService {
 			dbh=DatabaseHelper.getInstance(getApplicationContext());
 			shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);
 			
-			if (CitiesAvailability()) {
-				dbh.ClearCities();
-			}
-			try {
-				URL c_url=new URL(CITIES_URL);
-				HttpURLConnection con=(HttpURLConnection)c_url.openConnection();
-				con.setRequestMethod("GET");
-				con.setReadTimeout(15000);
-				con.connect();
-							
-				reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-				buf = new StringBuilder();
-				String line = null;
-							
-				while ((line=reader.readLine()) != null) {
-					buf.append(line+"\n");
-				}							
-				loadCities(buf.toString());							
-				}
-			catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving Cities data", e);
-			}
-			finally {
-				if (reader != null) {
-					try {
-						reader.close();
-					}
-					catch (IOException e) {
-						Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);						
-					}
-				}			 			
-			}			
+			UploadCities(IbabaiUtils.CITIES_URL);
 			
 			GPSTracker gps = new GPSTracker(this);
 			current_loc = gps.getLocation();					    
@@ -109,119 +77,21 @@ public class DataUploadService extends IntentService {
 			}
 			
 			c_id=shared_prefs.getInt(IbabaiUtils.CITY, 0);
-				
-			if (StoresAvailability()) {
-				dbh.ClearStores();
-			}
 			if (c_id != 0) {
-				
-				String STORES_URL = STORE_BASE_URL + Integer.toString(c_id) +".txt";
-				try {
-					URL s_url=new URL(STORES_URL);
-					HttpURLConnection con=(HttpURLConnection)s_url.openConnection();
-					con.setRequestMethod("GET");
-					con.setReadTimeout(15000);
-					con.connect();
-							
-					reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-					buf = new StringBuilder();
-					String line = null;
-							
-					while ((line=reader.readLine()) != null) {
-						buf.append(line+"\n");
-					}							
-					loadStores(buf.toString(), city_id);							
-				}
-				catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving store data", e);
-				}
-				finally {
-					if (reader != null) {
-						try {
-							reader.close();
-						}
-						catch (IOException e) {
-							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
-						}
-					}
-				}			
-			
-				if (psAvailability()) {
-					dbh.ClearPromoStores();
-				}			
-						
-				String SP_URL= SP_BASE_URL + Integer.toString(c_id) +".txt";
-				try {
-					URL sp_url=new URL(SP_URL);
-					HttpURLConnection con=(HttpURLConnection)sp_url.openConnection();
-					con.setRequestMethod("GET");
-					con.setReadTimeout(15000);
-					con.connect();
-				
-					reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-					StringBuilder buf = new StringBuilder();
-					String line = null;
-				
-					while ((line=reader.readLine()) != null) {
-						buf.append(line+"\n");
-					}
-					loadPromoStores(buf.toString());
-				}
-				catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving promo_store data", e);
-				}
-				finally {
-					if (reader != null) {
-						try {
-							reader.close();
-						}
-						catch (IOException e) {
-							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
-						}
-					}
-				}			
-				if (promosAvailability()) {
-					dbh.ClearPromos();
-				}
-			
-				try {
-					URL p_url=new URL(PROMO_NEW_USER_URL);
-					HttpURLConnection con=(HttpURLConnection)p_url.openConnection();
-					con.setRequestMethod("GET");
-					con.setReadTimeout(15000);
-					con.connect();
-					
-					reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-					buf = new StringBuilder();
-					String line = null;
-					
-					while ((line=reader.readLine()) != null) {
-						buf.append(line+"\n");
-					}
-					loadPromos(buf.toString());					
-				}
-				catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving promo data", e);
-				}
-				finally {
-					if (reader != null) {
-						try {
-							reader.close();
-						}
-						catch (IOException e) {
-							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
-						}
-					}
-				}		
-				    
-				Intent content_i = new Intent(this, ConUpdateService.class);		
-				startService(content_i);			
+				UploadStores(IbabaiUtils.STORE_BASE_URL);
 			}
-			else {
-				stopSelf();
+			if (psAvailability()) {
+				UploadPromos(IbabaiUtils.PROMO_NEW_USER_URL);
 			}
+			Intent content_i = new Intent(this, ConUpdateService.class);		
+			startService(content_i);
+			 
 		}
-	}
+		else {
+			stopSelf();
+		}
+	}	
+	
 	private boolean CitiesAvailability() {		
 		String c_query = String.format("SELECT * FROM %s", DatabaseHelper.TABLE_C);
 		Cursor c = dbh.getWritableDatabase().rawQuery(c_query, null);
@@ -280,6 +150,9 @@ public class DataUploadService extends IntentService {
 	 private void loadCities(String st) throws JSONException {
 		JSONArray jsa = new JSONArray(st);
 		if (jsa.length()>0) {
+			if (CitiesAvailability()) {
+				dbh.ClearCities();
+			}			
 			for (int i=0; i<jsa.length(); i++) {
 				JSONObject c_jso = jsa.optJSONObject(i);
 				City c = new City(c_jso);
@@ -288,23 +161,19 @@ public class DataUploadService extends IntentService {
 		}		
 	}	
 	 
-	 private void loadStores(String st, int id) throws JSONException {
-		JSONObject jso = new JSONObject(st);
-		int c_id = jso.optInt("city_id");
-		if (id == c_id) {
-			JSONArray stores = jso.optJSONArray("stores");
-			if (stores.length()>0) {
-				for (int i=0; i<stores.length(); i++) {
-					JSONObject store = stores.optJSONObject(i);
-					Store s = new Store(store);
-					dbh.AddStore(s);
-				}
+	 private void loadStores(String st) throws JSONException {		
+		JSONArray stores = new JSONArray(st);
+		if (stores.length()>0) {
+			for (int i=0; i<stores.length(); i++) {
+				JSONObject store = stores.optJSONObject(i);
+				Store s = new Store(store);
+				dbh.AddStore(s);
+				
 			}			
 		}		
 	}	
 	 private void loadPromos(String str) throws JSONException {
-		JSONObject jso = new JSONObject(str);
-		promoacts = jso.optJSONArray("promos");
+		promoacts = new JSONArray(str);		
 		if (promoacts.length() > 0) {
 			for (int i=0; i<promoacts.length(); i++) {
 				JSONObject promoact = promoacts.optJSONObject(i);
@@ -318,19 +187,21 @@ public class DataUploadService extends IntentService {
 	 }	
 	
 	private void loadPromoStores(String st) throws JSONException {
-		city_pa = new ArrayList<Integer>();
-		JSONArray jsa = new JSONArray(st);
-		for (int i=0; i<jsa.length(); i++) {
-			JSONObject store_item = jsa.optJSONObject(i);
-			int store_id = store_item.optInt("store_id");
-			JSONArray promo_items = store_item.optJSONArray("promo_ids");
-			for (int j=0; j<promo_items.length(); j++) {
-				int promoact_id = promo_items.optInt(j);
-				dbh.addPromoStores(store_id, promoact_id);
-				if (!city_pa.contains(promoact_id)) {
-					city_pa.add(promoact_id);
-				}
-			}
+		city_pa = new ArrayList<Integer>();		
+		JSONArray stores = new JSONArray(st);
+		if (stores.length()>0) {
+			for (int i=0; i<stores.length(); i++) {
+				JSONObject store = stores.optJSONObject(i);
+				int store_id = store.optInt("store_id");
+				JSONArray promo_items = store.optJSONArray("promos"); 
+				for (int j=0; j<promo_items.length(); j++) {
+					int promoact_id = promo_items.optInt(j);
+					dbh.addPromoStores(store_id, promoact_id);
+					if (!city_pa.contains(promoact_id)) {
+						city_pa.add(promoact_id);
+					}
+				}				
+			}			
 		}		
 	}	
 	
@@ -347,5 +218,164 @@ public class DataUploadService extends IntentService {
 			}
 		}
 		return outcome;
+	}
+	private void UploadCities(String url) {
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpGet get_cities = new HttpGet(url);		
+		String response = null;
+		JSONObject json = new JSONObject();
+		try {
+			try {
+				json.put("success", false);
+				json.put("info", "Error. Try again!");			
+					
+				get_cities.setHeader("Accept", "application/json");
+				get_cities.addHeader("Content-Type", "application/json");				
+					
+				ResponseHandler<String> r_handler = new BasicResponseHandler();
+				response = client.execute(get_cities, r_handler);
+				json = new JSONObject(response);					
+			}
+			catch (HttpResponseException ex) {
+				ex.printStackTrace();
+				Log.e("ClientProtocol", ""+ex);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+				Log.e("IO", ""+ex);
+			}
+		}
+		catch (JSONException ex) {
+			ex.printStackTrace();
+			Log.e("JSON", ""+ex);
+		}
+		if (json != null) {
+			try {
+				if (json.getBoolean("success")) {										
+					Log.v("IPI", "Cities delivered");
+					loadCities(json.getJSONObject("data").getString("cities"));					
+				}
+				else {
+					Log.e("DELIVERY", json.getString("info"));
+				}
+			}
+			catch(Exception e) {
+				Log.e("DELIVERY", e.getMessage());
+			}
+		}		
+	}
+	private void UploadStores(String url) {
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpPost post_stores = new HttpPost(url);
+		JSONObject holder = new JSONObject();
+		JSONObject stores_json = new JSONObject();
+		String response = null;
+		JSONObject json = new JSONObject();
+		try {
+			try {
+				json.put("success", false);
+				json.put("info", "Error. Try again!");			
+				
+				stores_json.put(DatabaseHelper.C_ID, c_id);
+				holder.put("store_upload", stores_json);
+				StringEntity se = new StringEntity(holder.toString());
+				post_stores.setEntity(se);
+				
+				post_stores.setHeader("Accept", "application/json");
+				post_stores.addHeader("Content-Type", "application/json");				
+					
+				ResponseHandler<String> r_handler = new BasicResponseHandler();
+				response = client.execute(post_stores, r_handler);
+				json = new JSONObject(response);					
+			}
+			catch (HttpResponseException ex) {
+				ex.printStackTrace();
+				Log.e("ClientProtocol", ""+ex);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+				Log.e("IO", ""+ex);
+			}
+		}
+		catch (JSONException ex) {
+			ex.printStackTrace();
+			Log.e("JSON", ""+ex);
+		}
+		if (json != null) {
+			try {
+				if (json.getBoolean("success")) {										
+					Log.v("IPI", "Stores delivered");
+					if (StoresAvailability()) {
+						dbh.ClearStores();
+					}
+					loadStores(json.getJSONObject("data").getString("stores"));
+					if (psAvailability()) {
+						dbh.ClearPromoStores();
+					}
+					loadPromoStores(json.getJSONObject("data").getString("stores"));
+				}
+				else {
+					Log.e("DELIVERY", json.getString("info"));
+				}
+			}
+			catch(Exception e) {
+				Log.e("DELIVERY", e.getMessage());
+			}
+		}		
+	}
+	private void UploadPromos(String url) {
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpPost post_promos = new HttpPost(url);
+		JSONObject holder = new JSONObject();
+		JSONObject promos_json = new JSONObject();
+		String response = null;
+		JSONObject json = new JSONObject();
+		try {
+			try {
+				json.put("success", false);
+				json.put("info", "Error. Try again!");			
+				
+				promos_json.put(DatabaseHelper.C_ID, c_id);
+				holder.put("promo_upload", promos_json);
+				StringEntity se = new StringEntity(holder.toString());
+				post_promos.setEntity(se);
+				
+				post_promos.setHeader("Accept", "application/json");
+				post_promos.addHeader("Content-Type", "application/json");				
+					
+				ResponseHandler<String> r_handler = new BasicResponseHandler();
+				response = client.execute(post_promos, r_handler);
+				json = new JSONObject(response);					
+			}
+			catch (HttpResponseException ex) {
+				ex.printStackTrace();
+				Log.e("ClientProtocol", ""+ex);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+				Log.e("IO", ""+ex);
+			}
+		}
+		catch (JSONException ex) {
+			ex.printStackTrace();
+			Log.e("JSON", ""+ex);
+		}
+		if (json != null) {
+			try {
+				if (json.getBoolean("success")) {										
+					Log.v("IPI", "Promos delivered");
+					if (promosAvailability()) {
+						dbh.ClearPromos();
+					}
+					loadPromos(json.getJSONObject("data").getString("promos"));					
+				}
+				else {
+					Log.e("DELIVERY", json.getString("info"));
+				}
+			}
+			catch(Exception e) {
+				Log.e("DELIVERY", e.getMessage());
+			}
+		}		
 	}
 }

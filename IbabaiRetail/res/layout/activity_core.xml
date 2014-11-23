@@ -36,8 +36,7 @@
          		android:paddingTop="10dp"
          		android:paddingBottom="10dp"
          		android:textSize="20sp"
-         		android:onClick="toStopList"                        
-         		android:text="@string/block_list" />
+         		android:onClick="toStopList" />
      	
      		<Button
          		android:id="@+id/btn_promo_map" 

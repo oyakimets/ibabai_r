@@ -98,7 +98,6 @@
     <string name="ar_connected">ARClient connected</string>
     <string name="remove_ar_already_requested_error">Can\'t remove ar, previous request has\'t finished.</string>
     <string name="promo_map">Show on map</string>
-    <string name="block_list">Block list</string>
     <string name="active_promos">Active promos</string>
     <string name="stores_with_promo">Stores with promo</string>
     <string name="activate_promo">Activate promo</string>
