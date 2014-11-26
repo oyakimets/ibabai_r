@@ -1,11 +1,14 @@
 package com.android.ibabairetail.proto;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,20 +26,14 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 
-public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulIntentService {
-	private static final String STORE_BASE_URL = "http://ibabai.picrunner.net/retail/city_stores/";
-	private static final String PROMO_BASE_URL = "http://ibabai.picrunner.net/retail/promo_users/";
-	private static final String SP_BASE_URL = "http://ibabai.picrunner.net/retail/promo_stores/";
-	private static final String CITIES_URL = "http://ibabai.picrunner.net/retail/cities.txt";
+public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulIntentService {	
 	private ArrayList<Integer> current_pa;
 	private ArrayList<Integer> update_pa;
-	private JSONArray promoacts = null;
-	private StringBuilder buf;
-	private String PROMO_URL;
-	private String u_id;
+	private ArrayList<Integer> city_pa;
+	private JSONArray promoacts = null;	
+	private String api_key;
 	private int city_id;
 	private int c_id;	
-	BufferedReader reader=null;
 	DatabaseHelper dbh;
 	SharedPreferences shared_prefs;
 	Location current_loc;
@@ -60,46 +57,12 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 		
 			dbh=DatabaseHelper.getInstance(getApplicationContext());
 			shared_prefs=getSharedPreferences(IbabaiUtils.PREFERENCES, Context.MODE_PRIVATE);			
-			u_id=shared_prefs.getString(IbabaiUtils.USER_ID, null);
+			api_key=shared_prefs.getString(IbabaiUtils.API_KEY, "");
 			Editor ed = shared_prefs.edit();
 			ed.putInt(IbabaiUtils.CITY, 0);
 			ed.apply();
 			
-			try {
-				URL c_url=new URL(CITIES_URL);
-				HttpURLConnection con=(HttpURLConnection)c_url.openConnection();
-				con.setRequestMethod("GET");
-				con.setReadTimeout(15000);
-				con.connect();
-							
-				reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-				buf = new StringBuilder();
-				String line = null;
-							
-				while ((line=reader.readLine()) != null) {
-					buf.append(line+"\n");
-				}
-				if (!buf.toString().isEmpty()) {
-					if (CitiesAvailability()) {
-						dbh.ClearCities();
-					}
-					loadCities(buf.toString());	
-				}											
-			}
-			catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving Cities data", e);
-			}
-			finally {
-				if (reader != null) {
-					try {
-						reader.close();
-					}
-					catch (IOException e) {
-						Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);						
-					}
-				}			 			
-			}
-			
+			UpdateCities(IbabaiUtils.CITIES_UPDATE_URL);			
 			
 			GPSTracker gps = new GPSTracker(this);
 			current_loc = gps.getLocation();		  
@@ -133,119 +96,12 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			
 			if (c_id != 0) {
 				
-				String STORES_URL = STORE_BASE_URL + Integer.toString(c_id) +".txt";
-				try {
-					URL s_url=new URL(STORES_URL);
-					HttpURLConnection con=(HttpURLConnection)s_url.openConnection();
-					con.setRequestMethod("GET");
-					con.setReadTimeout(15000);
-					con.connect();
-							
-					reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-					buf = new StringBuilder();
-					String line = null;
-							
-					while ((line=reader.readLine()) != null) {
-						buf.append(line+"\n");
-					}
-					if (!buf.toString().isEmpty()) {
-						if (StoresAvailability()) {
-							dbh.ClearStores();
-						}
-						loadStores(buf.toString(), city_id);
-					}
-				}
-				catch (Exception e) {
-					Log.e(getClass().getSimpleName(), "Exception retrieving store data", e);
-				}
-				finally {
-					if (reader != null) {
-						try {
-							reader.close();
-						}
-						catch (IOException e) {
-							Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
-						}
-					}
-				}			 			
-			
-			
-				if (StoresAvailability()) {
-						
-					String SP_URL= SP_BASE_URL + Integer.toString(c_id) +".txt";
-					try {
-						URL sp_url=new URL(SP_URL);
-						HttpURLConnection con=(HttpURLConnection)sp_url.openConnection();
-						con.setRequestMethod("GET");
-						con.setReadTimeout(15000);
-						con.connect();
+				UpdateStores(IbabaiUtils.STORE_UPDATE_URL);
 				
-						reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-						StringBuilder buf = new StringBuilder();
-						String line = null;
-				
-						while ((line=reader.readLine()) != null) {
-							buf.append(line+"\n");
-						}
-						if (!buf.toString().isEmpty()) {
-							if (psAvailability()) {
-								dbh.ClearPromoStores();
-							}			
-							loadPromoStores(buf.toString());
-						}
-					}
-					catch (Exception e) {
-						Log.e(getClass().getSimpleName(), "Exception retrieving promo_store data", e);
-					}
-					finally {
-						if (reader != null) {
-							try {
-								reader.close();
-							}
-							catch (IOException e) {
-								Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
-							}
-						}
-					}
-				}
-				
-				if (psAvailability()) {
-		
-					PROMO_URL = PROMO_BASE_URL+u_id+".txt";
-					try {
-						URL p_url=new URL(PROMO_URL);
-						HttpURLConnection con=(HttpURLConnection)p_url.openConnection();
-						con.setRequestMethod("GET");
-						con.setReadTimeout(15000);
-						con.connect();
-					
-						reader=new BufferedReader(new InputStreamReader(con.getInputStream()));
-						buf = new StringBuilder();
-						String line = null;
-					
-						while ((line=reader.readLine()) != null) {
-							buf.append(line+"\n");
-						}
-						if (!buf.toString().isEmpty()) {
-							loadPromos(buf.toString(), u_id);
-							killPromos(buf.toString(), u_id);
-						}
-					}
-					catch (Exception e) {
-						Log.e(getClass().getSimpleName(), "Exception retrieving promo data", e);
-					}
-					finally {
-						if (reader != null) {
-							try {
-								reader.close();
-							}
-							catch (IOException e) {
-								Log.e(getClass().getSimpleName(), "Exception closing HUC reader", e);
-							}
-						}
-					}
-				}
 			}
+			if (psAvailability()) {
+				UpdatePromos(IbabaiUtils.PROMO_UPDATE_URL);
+			}				
 			
 			WakefulIntentService.sendWakefulWork(this, ConUpdateService.class);		
 			ResetStore();
@@ -322,28 +178,13 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 		 else {
 			 return false;
 		 }
-	 }
+	 }	 
 	 
-	 private void loadStores(String st, int id) throws JSONException {
-		JSONObject jso = new JSONObject(st);
-		int c_id = jso.optInt("city_id");
-		if (id == c_id) {
-			JSONArray stores = jso.optJSONArray("stores");
-			if (stores.length()>0) {
-				for (int i=0; i<stores.length(); i++) {
-					JSONObject store = stores.optJSONObject(i);
-					Store s = new Store(store);
-					dbh.AddStore(s);
-				}
-			}			
-		}		
-	}	
-	 private void loadPromos(String str, String us_id ) throws JSONException {
+	 private void loadPromos(String str) throws JSONException {
 		current_pa = CurrentPromos();
-		update_pa = UpdatePromos(str, Integer.parseInt(us_id));
+		update_pa = updatePromos(str);
 		counter = 0;
-		JSONObject jso = new JSONObject(str);
-		promoacts = jso.optJSONArray("promos");
+		promoacts = new JSONArray(str);
 		if (promoacts.length() > 0) {
 			for (int i=0; i<update_pa.size(); i++) {
 				if (!current_pa.contains(update_pa.get(i)) && CheckPromosInPs(update_pa.get(i))) {
@@ -363,9 +204,9 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 		}
 		counter_e.apply();
 	 }
-	 private void killPromos(String str, String us_id) throws JSONException {
+	 private void killPromos(String str) throws JSONException {
 		 current_pa = CurrentPromos();
-		 update_pa = UpdatePromos(str, Integer.parseInt(us_id));		
+		 update_pa = updatePromos(str);		
 		 if (current_pa.size() > 0) {
 			 for (int i=0; i<current_pa.size(); i++) {
 				 if (!update_pa.contains(current_pa.get(i))) {
@@ -374,18 +215,14 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			 }
 		 }		 
 	 }
-	 private ArrayList<Integer> UpdatePromos(String st, int us_id) throws JSONException {
+	 private ArrayList<Integer> updatePromos(String st) throws JSONException {
 		ArrayList<Integer> up_lst = new ArrayList<Integer>();
-		JSONObject jso = new JSONObject(st);
-		int u_id = jso.optInt("user_id");
-		if (us_id == u_id) {
-			promoacts = jso.optJSONArray("promos");
-			if (promoacts.length() > 0) {
-				for (int i=0; i<promoacts.length(); i++) {
-					JSONObject promoact = promoacts.optJSONObject(i);
-					int pa_id = promoact.getInt("promoact_id");
-					up_lst.add(pa_id);
-				}
+		promoacts = new JSONArray(st);		
+		if (promoacts.length() > 0) {
+			for (int i=0; i<promoacts.length(); i++) {
+				JSONObject promoact = promoacts.optJSONObject(i);
+				int pa_id = promoact.getInt("promoact_id");
+				up_lst.add(pa_id);				
 			}			
 		}
 		return up_lst;
@@ -403,20 +240,7 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 			 pa_c.close();
 		 }
 		 return cur_lst; 
-	 }
-	
-	private void loadPromoStores(String st) throws JSONException {
-		JSONArray jsa = new JSONArray(st);
-		for (int i=0; i<jsa.length(); i++) {
-			JSONObject store_item = jsa.optJSONObject(i);
-			int store_id = store_item.optInt("store_id");
-			JSONArray promo_item = store_item.optJSONArray("promo_ids");
-			for (int j=0; j<promo_item.length(); j++) {
-				int promoact_id = promo_item.optInt(j);
-				dbh.addPromoStores(store_id, promoact_id);
-			}
-		}
-	}
+	 }	
 	
 	private boolean servicesConnected() {
 		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
@@ -449,14 +273,211 @@ public class DataUpdateService extends com.commonsware.cwac.wakeful.WakefulInten
 		editor.remove(GeofenceUtils.KEY_PREVIOUS_ACTIVITY_TYPE);
 		editor.apply();
 	}
+		
 	private void loadCities(String st) throws JSONException {
 		JSONArray jsa = new JSONArray(st);
 		if (jsa.length()>0) {
+			if (CitiesAvailability()) {
+				dbh.ClearCities();
+			}			
 			for (int i=0; i<jsa.length(); i++) {
 				JSONObject c_jso = jsa.optJSONObject(i);
 				City c = new City(c_jso);
 				dbh.AddCity(c);					
 			}			
 		}		
+	}
+	
+	private void loadStores(String st) throws JSONException {		
+		JSONArray stores = new JSONArray(st);
+		if (stores.length()>0) {
+			for (int i=0; i<stores.length(); i++) {
+				JSONObject store = stores.optJSONObject(i);
+				Store s = new Store(store);
+				dbh.AddStore(s);
+				
+			}			
+		}		
+	}
+	
+	private void loadPromoStores(String st) throws JSONException {
+		city_pa = new ArrayList<Integer>();		
+		JSONArray stores = new JSONArray(st);
+		if (stores.length()>0) {
+			for (int i=0; i<stores.length(); i++) {
+				JSONObject store = stores.optJSONObject(i);
+				int store_id = store.optInt("store_id");
+				JSONArray promo_items = store.optJSONArray("promos"); 
+				for (int j=0; j<promo_items.length(); j++) {
+					int promoact_id = promo_items.optInt(j);
+					dbh.addPromoStores(store_id, promoact_id);
+					if (!city_pa.contains(promoact_id)) {
+						city_pa.add(promoact_id);
+					}
+				}				
+			}			
+		}		
 	}	
+	private void UpdateCities(String url) {
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpGet get_cities = new HttpGet(url);		
+		String response = null;
+		JSONObject json = new JSONObject();
+		try {
+			try {
+				json.put("success", false);
+				json.put("info", "Error. Try again!");			
+					
+				get_cities.setHeader("Accept", "application/json");
+				get_cities.addHeader("Content-Type", "application/json");
+				get_cities.setHeader("Authorization", "Token token="+api_key);
+					
+				ResponseHandler<String> r_handler = new BasicResponseHandler();
+				response = client.execute(get_cities, r_handler);
+				json = new JSONObject(response);					
+			}
+			catch (HttpResponseException ex) {
+				ex.printStackTrace();
+				Log.e("ClientProtocol", ""+ex);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+				Log.e("IO", ""+ex);
+			}
+		}
+		catch (JSONException ex) {
+			ex.printStackTrace();
+			Log.e("JSON", ""+ex);
+		}
+		if (json != null) {
+			try {
+				if (json.getBoolean("success")) {										
+					Log.v("IPI", "Cities delivered");
+					loadCities(json.getJSONObject("data").getString("cities"));					
+				}
+				else {
+					Log.e("DELIVERY", json.getString("info"));
+				}
+			}
+			catch(Exception e) {
+				Log.e("DELIVERY", e.getMessage());
+			}
+		}		
+	}
+	
+	private void UpdateStores(String url) {
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpPost post_stores = new HttpPost(url);
+		JSONObject holder = new JSONObject();
+		JSONObject stores_json = new JSONObject();
+		String response = null;
+		JSONObject json = new JSONObject();
+		try {
+			try {
+				json.put("success", false);
+				json.put("info", "Error. Try again!");			
+				
+				stores_json.put(DatabaseHelper.C_ID, c_id);
+				holder.put("store_update", stores_json);
+				StringEntity se = new StringEntity(holder.toString());
+				post_stores.setEntity(se);
+				
+				post_stores.setHeader("Accept", "application/json");
+				post_stores.addHeader("Content-Type", "application/json");				
+				post_stores.setHeader("Authorization", "Token token="+api_key);
+				
+				ResponseHandler<String> r_handler = new BasicResponseHandler();
+				response = client.execute(post_stores, r_handler);
+				json = new JSONObject(response);					
+			}
+			catch (HttpResponseException ex) {
+				ex.printStackTrace();
+				Log.e("ClientProtocol", ""+ex);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+				Log.e("IO", ""+ex);
+			}
+		}
+		catch (JSONException ex) {
+			ex.printStackTrace();
+			Log.e("JSON", ""+ex);
+		}
+		if (json != null) {
+			try {
+				if (json.getBoolean("success")) {										
+					Log.v("IPI", "Stores delivered");
+					if (StoresAvailability()) {
+						dbh.ClearStores();
+					}
+					loadStores(json.getJSONObject("data").getString("stores"));
+					if (psAvailability()) {
+						dbh.ClearPromoStores();
+					}
+					loadPromoStores(json.getJSONObject("data").getString("stores"));
+				}
+				else {
+					Log.e("DELIVERY", json.getString("info"));
+				}
+			}
+			catch(Exception e) {
+				Log.e("DELIVERY", e.getMessage());
+			}
+		}		
+	}
+	
+	private void UpdatePromos(String url) {
+		DefaultHttpClient client = new DefaultHttpClient();
+		HttpPost post_promos = new HttpPost(url);
+		JSONObject holder = new JSONObject();
+		JSONObject promos_json = new JSONObject();
+		String response = null;
+		JSONObject json = new JSONObject();
+		try {
+			try {
+				json.put("success", false);
+				json.put("info", "Error. Try again!");			
+				
+				promos_json.put(DatabaseHelper.C_ID, c_id);
+				holder.put("promo_update", promos_json);
+				StringEntity se = new StringEntity(holder.toString());
+				post_promos.setEntity(se);
+				
+				post_promos.setHeader("Accept", "application/json");
+				post_promos.addHeader("Content-Type", "application/json");
+				post_promos.setHeader("Authorization", "Token token="+api_key);
+					
+				ResponseHandler<String> r_handler = new BasicResponseHandler();
+				response = client.execute(post_promos, r_handler);
+				json = new JSONObject(response);					
+			}
+			catch (HttpResponseException ex) {
+				ex.printStackTrace();
+				Log.e("ClientProtocol", ""+ex);
+			}
+			catch (IOException ex) {
+				ex.printStackTrace();
+				Log.e("IO", ""+ex);
+			}
+		}
+		catch (JSONException ex) {
+			ex.printStackTrace();
+			Log.e("JSON", ""+ex);
+		}
+		if (json != null) {
+			try {
+				if (json.getBoolean("success")) {										
+					Log.v("IPI", "Promos delivered");					
+					loadPromos(json.getJSONObject("data").getString("promos"));
+					killPromos(json.getJSONObject("data").getString("promos"));
+				}
+				else {
+					Log.e("DELIVERY", json.getString("info"));
+				}
+			}
+			catch(Exception e) {
+				Log.e("DELIVERY", e.getMessage());
+			}
+		}		
+	}
 }

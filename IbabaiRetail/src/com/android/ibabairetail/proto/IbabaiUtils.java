@@ -45,10 +45,13 @@ public class IbabaiUtils {
 	public static final String CON_BASE_URL = "http://192.168.1.103:3000/promo_zip/";
 	public static final String PAYMENT_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"transactions.json";
 	public final static String REGISTER_API_ENDPOINT_URL= BASE_API_ENDPOINT_URL+"customers";
-	public static final String CITIES_URL = BASE_API_ENDPOINT_URL+"city_uploads" ;
-	public static final String STORE_BASE_URL = BASE_API_ENDPOINT_URL+"store_uploads.json" ; ;
-	public static final String PROMO_NEW_USER_URL = BASE_API_ENDPOINT_URL+"promo_uploads.json" ;;
-	public static final String PS_BASE_URL = BASE_API_ENDPOINT_URL+"ps_uploads" ;;
+	public static final String CITIES_URL = BASE_API_ENDPOINT_URL+"city_uploads";
+	public static final String CITIES_UPDATE_URL = BASE_API_ENDPOINT_URL+"city_updates";
+	public static final String STORE_BASE_URL = BASE_API_ENDPOINT_URL+"store_uploads.json";
+	public static final String STORE_UPDATE_URL = BASE_API_ENDPOINT_URL+"store_updates.json";
+	public static final String PROMO_NEW_USER_URL = BASE_API_ENDPOINT_URL+"promo_uploads.json";
+	public static final String PROMO_UPDATE_URL = BASE_API_ENDPOINT_URL+"promo_updates.json";
+	public static final String PS_BASE_URL = BASE_API_ENDPOINT_URL+"ps_uploads";
 	public static final String CON_EXT="con_ext.zip";
 	public static final String CON_BASEDIR="promo_content";
 	public static final String PREF_CON_DIR="pendingConDir";
