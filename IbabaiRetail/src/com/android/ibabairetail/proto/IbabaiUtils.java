@@ -52,6 +52,7 @@ public class IbabaiUtils {
 	public static final String PROMO_NEW_USER_URL = BASE_API_ENDPOINT_URL+"promo_uploads.json";
 	public static final String PROMO_UPDATE_URL = BASE_API_ENDPOINT_URL+"promo_updates.json";
 	public static final String PS_BASE_URL = BASE_API_ENDPOINT_URL+"ps_uploads";
+	public static final String PROMO_CODE_URL = BASE_API_ENDPOINT_URL+"promo_codes";
 	public static final String CON_EXT="con_ext.zip";
 	public static final String CON_BASEDIR="promo_content";
 	public static final String PREF_CON_DIR="pendingConDir";
